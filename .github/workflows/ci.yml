@@ -1,0 +1,45 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Checkout repository
+      - uses: actions/checkout@v4
+
+      # Set up Flutter
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+          cache-dependency-path: src/pubspec.lock
+
+      # Install dependencies
+      - run: flutter pub get
+        working-directory: src
+
+      # Check Dart formatting
+      - run: dart format --output=none --set-exit-if-changed lib test
+        working-directory: src
+
+      # Analyze code
+      - run: flutter analyze
+        working-directory: src
+
+      # Run tests
+      - run: flutter test
+        working-directory: src
+
+      # Build Android APK
+      - run: flutter build apk --debug
+        working-directory: src
