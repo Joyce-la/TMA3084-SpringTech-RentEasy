@@ -25,21 +25,26 @@ jobs:
           cache-dependency-path: src/pubspec.lock
 
       # Install dependencies
-      - run: flutter pub get
+      - name: Install dependencies
         working-directory: src
+        run: flutter pub get
 
       # Check Dart formatting
-      - run: dart format --output=none --set-exit-if-changed lib test
+      - name: Check formatting
         working-directory: src
+        run: dart format --output=none --set-exit-if-changed lib test
 
       # Analyze code
-      - run: flutter analyze
+      - name: Analyze code
         working-directory: src
+        run: flutter analyze
 
       # Run tests
-      - run: flutter test
+      - name: Run tests
         working-directory: src
+        run: flutter test
 
       # Build Android APK
-      - run: flutter build apk --debug
+      - name: Build Android APK
         working-directory: src
+        run: flutter build apk --debug
