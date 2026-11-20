@@ -2,6 +2,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:src/main.dart';
 import 'package:src/screens/home_screen.dart';
+import 'package:src/screens/fleet/fleet_screen.dart';
 import 'package:src/screens/payments/deposit_screen.dart';
 import 'package:src/screens/payments/invoice_screen.dart';
 import 'package:src/widgets/app_top_bar.dart';
@@ -115,13 +116,21 @@ void main() {
     expect(find.text('Grace Ling'), findsOneWidget);
   });
 
+  testWidgets('Fleet tab shows FleetScreen', (tester) async {
+    await tester.pumpWidget(const RentEasyApp());
+
+    await tester.tap(find.text('Fleet'));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(FleetScreen), findsOneWidget);
+  });
+
   testWidgets('Unimplemented navigation destinations show coming soon text', (
     tester,
   ) async {
     await tester.pumpWidget(const RentEasyApp());
 
     for (final destination in {
-      'Fleet': 'The Fleet screen is coming soon.',
       'Rentals': 'The Rentals screen is coming soon.',
       'Reports': 'The Reports screen is coming soon.',
     }.entries) {

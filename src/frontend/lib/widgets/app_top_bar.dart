@@ -15,55 +15,53 @@ class AppTopBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Expanded(
-          child: Text(
-            title,
-            style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w700),
-          ),
+        Text(
+          title,
+          style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
         ),
-        _HeaderAction(
-          label: 'AI assistant',
-          onTap: onAssistantTap,
-          child: const Text('AI', style: TextStyle(fontSize: 14)),
-        ),
-        const SizedBox(width: 8),
-        _HeaderAction(
-          label: 'Profile',
-          onTap: onProfileTap,
-          child: const Icon(Icons.person, size: 21),
+        Row(
+          children: [
+            _HeaderIcon(
+              icon: Icons.smart_toy_outlined,
+              tooltip: 'AI assistant',
+              onTap: onAssistantTap,
+            ),
+            const SizedBox(width: 8),
+            _HeaderIcon(
+              icon: Icons.person,
+              tooltip: 'Profile',
+              onTap: onProfileTap,
+            ),
+          ],
         ),
       ],
     );
   }
 }
 
-class _HeaderAction extends StatelessWidget {
-  const _HeaderAction({
-    required this.label,
+class _HeaderIcon extends StatelessWidget {
+  const _HeaderIcon({
+    required this.icon,
+    required this.tooltip,
     required this.onTap,
-    required this.child,
   });
 
-  final String label;
+  final IconData icon;
+  final String tooltip;
   final VoidCallback? onTap;
-  final Widget child;
 
   @override
   Widget build(BuildContext context) {
     return Tooltip(
-      message: label,
-      child: SizedBox(
-        width: 48,
-        height: 48,
-        child: Material(
-          color: Colors.grey.shade200,
-          shape: const CircleBorder(),
-          child: InkWell(
-            onTap: onTap,
-            customBorder: const CircleBorder(),
-            child: Center(child: child),
-          ),
+      message: tooltip,
+      child: GestureDetector(
+        onTap: onTap,
+        child: CircleAvatar(
+          radius: 17,
+          backgroundColor: Colors.grey.shade300,
+          child: Icon(icon, size: 19, color: Colors.black),
         ),
       ),
     );
