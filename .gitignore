@@ -44,5 +44,12 @@ android/app/debug
 android/app/profile
 android/app/release
 
+# Android generated files
+**/.gradle/
+**/local.properties
+
+# iOS generated files
+**/ios/Flutter/ephemeral/
+
 # Widget Preview related
 .widget_preview/
