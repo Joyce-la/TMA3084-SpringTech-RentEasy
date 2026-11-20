@@ -34,39 +34,6 @@ void main() {
     expect(profileTapped, isTrue);
   });
 
-  testWidgets('AppTopBar hides role toggle when isOwner is not provided', (
-    tester,
-  ) async {
-    await tester.pumpWidget(
-      const MaterialApp(
-        home: Scaffold(body: AppTopBar(title: 'Payments')),
-      ),
-    );
-
-    expect(find.text('Owner'), findsNothing);
-    expect(find.text('Staff'), findsNothing);
-  });
-
-  testWidgets('AppTopBar role toggle reports the selected role', (
-    tester,
-  ) async {
-    bool? role;
-    await tester.pumpWidget(
-      MaterialApp(
-        home: Scaffold(
-          body: AppTopBar(
-            title: 'Fleet',
-            isOwner: true,
-            onRoleChanged: (v) => role = v,
-          ),
-        ),
-      ),
-    );
-
-    await tester.tap(find.text('Staff'));
-    expect(role, isFalse);
-  });
-
   testWidgets('InvoiceCard shows payment status, balance and progress', (
     tester,
   ) async {

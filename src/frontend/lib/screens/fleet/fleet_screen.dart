@@ -34,8 +34,6 @@ class FleetScreen extends StatefulWidget {
 class _FleetScreenState extends State<FleetScreen> {
   static const Color navyBlue = Color(0xFF071957);
 
-  // UI state
-  bool isOwner = true;
   String searchQuery = '';
   VehicleStatus? selectedFilter;
 
@@ -104,11 +102,7 @@ class _FleetScreenState extends State<FleetScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              AppTopBar(
-                title: 'Fleet',
-                isOwner: isOwner,
-                onRoleChanged: (v) => setState(() => isOwner = v),
-              ),
+              AppTopBar(title: 'Fleet'),
 
               const SizedBox(height: 12),
 
