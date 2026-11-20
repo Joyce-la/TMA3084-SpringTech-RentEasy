@@ -1,5 +1,6 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:src/screens/home_screen.dart';
+import 'package:src/screens/fleet/fleet_screen.dart';
 import 'package:src/screens/payments/deposit_screen.dart';
 import 'package:src/screens/payments/invoice_screen.dart';
 
@@ -14,6 +15,7 @@ class RentEasyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'RentEasy',
+      debugShowCheckedModeBanner: false,
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF071957)),
         useMaterial3: true,
@@ -78,6 +80,10 @@ class _BottomNavState extends State<BottomNav> {
       return const HomeScreen();
     }
 
+    if (_selectedIndex == 1) {
+      return const FleetScreen();
+    }
+
     if (_selectedIndex == 3) {
       if (_showDeposits) {
         return DepositScreen(
@@ -90,7 +96,6 @@ class _BottomNavState extends State<BottomNav> {
     }
 
     final message = switch (_selectedIndex) {
-      1 => 'The Fleet screen is coming soon.',
       2 => 'The Rentals screen is coming soon.',
       4 => 'The Reports screen is coming soon.',
       _ => 'This screen is coming soon.',
