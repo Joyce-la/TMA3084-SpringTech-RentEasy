@@ -93,7 +93,10 @@ void main() {
 
     expect(find.byType(HomeScreen), findsOneWidget);
     expect(find.text('The Home screen is coming soon.'), findsOneWidget);
-    expect(tester.widget<NavigationBar>(find.byType(NavigationBar)).selectedIndex, 0);
+    expect(
+      tester.widget<NavigationBar>(find.byType(NavigationBar)).selectedIndex,
+      0,
+    );
     await tester.tap(find.text('Payment'));
     await tester.pumpAndSettle();
 

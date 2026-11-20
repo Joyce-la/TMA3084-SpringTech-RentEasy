@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
-Widget buildPaymentsSectionTabs(
-  {
+Widget buildPaymentsSectionTabs({
   required bool depositsSelected,
   required VoidCallback onInvoiceTap,
   required VoidCallback onDepositsTap,

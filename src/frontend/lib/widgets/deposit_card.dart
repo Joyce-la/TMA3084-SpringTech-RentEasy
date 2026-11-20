@@ -115,10 +115,7 @@ class DepositCard extends StatelessWidget {
                   child: Text(
                     ' · $plateNumber',
                     overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Colors.grey.shade700,
-                    ),
+                    style: TextStyle(fontSize: 12, color: Colors.grey.shade700),
                   ),
                 ),
               ],
@@ -151,10 +148,9 @@ class DepositCard extends StatelessWidget {
                   onPressed: onPrimaryAction,
                   style: OutlinedButton.styleFrom(
                     foregroundColor: navyBlue,
-                    backgroundColor:
-                        status == DepositStatus.eligibleToRefund
-                            ? navyBlue
-                            : Colors.white,
+                    backgroundColor: status == DepositStatus.eligibleToRefund
+                        ? navyBlue
+                        : Colors.white,
                     side: const BorderSide(color: navyBlue),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(16),
