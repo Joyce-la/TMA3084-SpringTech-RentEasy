@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import '../../widgets/app_top_bar.dart';
 import '../../widgets/deposit_card.dart';

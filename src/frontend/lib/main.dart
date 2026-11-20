@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:src/screens/home_screen.dart';
 import 'package:src/screens/payments/deposit_screen.dart';
 import 'package:src/screens/payments/invoice_screen.dart';
