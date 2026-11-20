@@ -1,6 +1,8 @@
 import 'package:material_ui/material_ui.dart';
 
-enum InvoicePaymentStatus { unpaid, partiallyPaid, paid }
+import '../mock_data/invoices.dart' show InvoicePaymentStatus;
+
+export '../mock_data/invoices.dart' show InvoicePaymentStatus;
 
 class InvoiceCard extends StatelessWidget {
   const InvoiceCard({
@@ -12,6 +14,7 @@ class InvoiceCard extends StatelessWidget {
     required this.paidAmount,
     required this.totalAmount,
     required this.status,
+    this.onTap,
   });
 
   static const Color navyBlue = Color(0xFF071957);
@@ -23,6 +26,7 @@ class InvoiceCard extends StatelessWidget {
   final double paidAmount;
   final double totalAmount;
   final InvoicePaymentStatus status;
+  final VoidCallback? onTap;
 
   String get statusLabel => switch (status) {
     InvoicePaymentStatus.unpaid => 'Unpaid',
@@ -43,90 +47,97 @@ class InvoiceCard extends StatelessWidget {
       margin: EdgeInsets.zero,
       color: const Color(0xFFF1F1F5),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      child: Padding(
-        padding: const EdgeInsets.all(14),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    invoiceNumber,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(16),
+        child: Padding(
+          padding: const EdgeInsets.all(14),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      invoiceNumber,
+                      style: const TextStyle(
+                        color: Colors.blue,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ),
+                  Text(
+                    date,
+                    style: TextStyle(fontSize: 12, color: Colors.grey.shade700),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 4),
+              Row(
+                children: [
+                  Expanded(
+                    child: Row(
+                      children: [
+                        Flexible(
+                          child: Text(
+                            customerName,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(fontWeight: FontWeight.w700),
+                          ),
+                        ),
+                        Flexible(
+                          child: Text(
+                            ' · $plateNumber',
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.grey.shade700,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  _StatusBadge(label: statusLabel, paid: paid),
+                ],
+              ),
+              const SizedBox(height: 10),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: LinearProgressIndicator(
+                  value: paymentProgress,
+                  minHeight: 8,
+                  backgroundColor: Colors.white,
+                  color: navyBlue,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      'RM ${paidAmount.toStringAsFixed(2)} of RM ${totalAmount.toStringAsFixed(2)}',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.grey.shade700,
+                      ),
+                    ),
+                  ),
+                  Text(
+                    'Balance RM ${balance.toStringAsFixed(2)}',
                     style: const TextStyle(
-                      color: Colors.blue,
-                      fontSize: 13,
+                      fontSize: 12,
                       fontWeight: FontWeight.w700,
                     ),
                   ),
-                ),
-                Text(
-                  date,
-                  style: TextStyle(fontSize: 12, color: Colors.grey.shade700),
-                ),
-              ],
-            ),
-            const SizedBox(height: 4),
-            Row(
-              children: [
-                Expanded(
-                  child: Row(
-                    children: [
-                      Flexible(
-                        child: Text(
-                          customerName,
-                          overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(fontWeight: FontWeight.w700),
-                        ),
-                      ),
-                      Flexible(
-                        child: Text(
-                          ' · $plateNumber',
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Colors.grey.shade700,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(width: 8),
-                _StatusBadge(label: statusLabel, paid: paid),
-              ],
-            ),
-            const SizedBox(height: 10),
-            ClipRRect(
-              borderRadius: BorderRadius.circular(8),
-              child: LinearProgressIndicator(
-                value: paymentProgress,
-                minHeight: 8,
-                backgroundColor: Colors.white,
-                color: navyBlue,
+                ],
               ),
-            ),
-            const SizedBox(height: 8),
-            Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    'RM ${paidAmount.toStringAsFixed(2)} of RM ${totalAmount.toStringAsFixed(2)}',
-                    style: TextStyle(fontSize: 12, color: Colors.grey.shade700),
-                  ),
-                ),
-                Text(
-                  'Balance RM ${balance.toStringAsFixed(2)}',
-                  style: const TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            Divider(height: 1, color: Colors.grey.shade300),
-          ],
+              const SizedBox(height: 8),
+              Divider(height: 1, color: Colors.grey.shade300),
+            ],
+          ),
         ),
       ),
     );

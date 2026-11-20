@@ -1,8 +1,10 @@
 import 'package:material_ui/material_ui.dart';
 
+import '../../mock_data/invoices.dart';
 import '../../widgets/app_top_bar.dart';
 import '../../widgets/invoice_card.dart';
 import 'deposit_screen.dart';
+import 'invoice_detail_screen.dart';
 import 'payments_screen_components.dart';
 
 class InvoiceScreen extends StatefulWidget {
@@ -15,60 +17,12 @@ class InvoiceScreen extends StatefulWidget {
 }
 
 class _InvoiceScreenState extends State<InvoiceScreen> {
-  static const _invoices = [
-    InvoiceCardData(
-      invoiceNumber: 'INV-20261110-001',
-      customerName: 'Grace Ling',
-      plateNumber: 'QAA 1234',
-      date: '10 Nov 2026',
-      paidAmount: 0,
-      totalAmount: 890,
-      status: InvoicePaymentStatus.unpaid,
-    ),
-    InvoiceCardData(
-      invoiceNumber: 'INV-20261109-003',
-      customerName: 'Kevin Lim',
-      plateNumber: 'QA 7345 D',
-      date: '9 Nov 2026',
-      paidAmount: 300,
-      totalAmount: 500,
-      status: InvoicePaymentStatus.partiallyPaid,
-    ),
-    InvoiceCardData(
-      invoiceNumber: 'INV-20261105-001',
-      customerName: 'Mei Ling Tan',
-      plateNumber: 'QB 4410 M',
-      date: '5 Nov 2026',
-      paidAmount: 500,
-      totalAmount: 500,
-      status: InvoicePaymentStatus.paid,
-    ),
-    InvoiceCardData(
-      invoiceNumber: 'INV-20261101-002',
-      customerName: 'Aisha Rahman',
-      plateNumber: 'QK 8821 B',
-      date: '1 Nov 2026',
-      paidAmount: 500,
-      totalAmount: 500,
-      status: InvoicePaymentStatus.paid,
-    ),
-    InvoiceCardData(
-      invoiceNumber: 'INV-20261028-001',
-      customerName: 'Farid Ismail',
-      plateNumber: 'QA 9902 F',
-      date: '1 Nov 2026',
-      paidAmount: 500,
-      totalAmount: 500,
-      status: InvoicePaymentStatus.paid,
-    ),
-  ];
-
   String _searchQuery = '';
   InvoicePaymentStatus? _selectedStatus;
 
-  List<InvoiceCardData> get _visibleInvoices {
+  List<InvoiceData> get _visibleInvoices {
     final query = _searchQuery.trim().toLowerCase();
-    return _invoices.where((invoice) {
+    return mockInvoices.where((invoice) {
       final matchesStatus =
           _selectedStatus == null || invoice.status == _selectedStatus;
       final matchesSearch =
@@ -81,8 +35,8 @@ class _InvoiceScreenState extends State<InvoiceScreen> {
   }
 
   int _countFor(InvoicePaymentStatus? status) {
-    if (status == null) return _invoices.length;
-    return _invoices.where((invoice) => invoice.status == status).length;
+    if (status == null) return mockInvoices.length;
+    return mockInvoices.where((invoice) => invoice.status == status).length;
   }
 
   @override
@@ -130,7 +84,7 @@ class _InvoiceScreenState extends State<InvoiceScreen> {
               ),
             ),
             SizedBox(
-              height: 48,
+              height: 40,
               child: ListView(
                 padding: const EdgeInsets.symmetric(horizontal: 24),
                 scrollDirection: Axis.horizontal,
@@ -160,6 +114,12 @@ class _InvoiceScreenState extends State<InvoiceScreen> {
                           paidAmount: invoice.paidAmount,
                           totalAmount: invoice.totalAmount,
                           status: invoice.status,
+                          onTap: () => Navigator.of(context).push(
+                            MaterialPageRoute<void>(
+                              builder: (_) =>
+                                  InvoiceDetailScreen(invoice: invoice),
+                            ),
+                          ),
                         );
                       },
                     ),
@@ -181,18 +141,54 @@ class _InvoiceScreenState extends State<InvoiceScreen> {
     final selected = _selectedStatus == status;
     return Padding(
       padding: const EdgeInsets.only(right: 8),
-      child: ChoiceChip(
-        label: Text('$label ${_countFor(status)}'),
+      child: Semantics(
+        button: true,
         selected: selected,
-        onSelected: (_) => setState(() => _selectedStatus = status),
-        selectedColor: const Color(0xFF071957),
-        backgroundColor: const Color(0xFFF1F1F5),
-        labelStyle: TextStyle(
-          color: selected ? Colors.white : Colors.black,
-          fontSize: 13,
+        label: '$label ${_countFor(status)}',
+        child: GestureDetector(
+          key: Key('invoice-filter-${status?.name ?? 'all'}'),
+          onTap: () => setState(() => _selectedStatus = status),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            decoration: BoxDecoration(
+              color: selected
+                  ? const Color(0xFF071957)
+                  : const Color(0xFFEDEDF2),
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Row(
+              children: [
+                Text(
+                  label,
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: selected ? FontWeight.bold : FontWeight.normal,
+                    color: selected ? Colors.white : Colors.grey.shade700,
+                  ),
+                ),
+                const SizedBox(width: 6),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 7,
+                    vertical: 2,
+                  ),
+                  decoration: BoxDecoration(
+                    color: selected ? Colors.white24 : const Color(0xFFD0D2DC),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Text(
+                    _countFor(status).toString(),
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                      color: selected ? Colors.white : Colors.grey.shade700,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
         ),
-        showCheckmark: false,
-        materialTapTargetSize: MaterialTapTargetSize.padded,
       ),
     );
   }
@@ -208,24 +204,4 @@ class _InvoiceScreenState extends State<InvoiceScreen> {
       MaterialPageRoute<void>(builder: (_) => const DepositScreen()),
     );
   }
-}
-
-class InvoiceCardData {
-  const InvoiceCardData({
-    required this.invoiceNumber,
-    required this.customerName,
-    required this.plateNumber,
-    required this.date,
-    required this.paidAmount,
-    required this.totalAmount,
-    required this.status,
-  });
-
-  final String invoiceNumber;
-  final String customerName;
-  final String plateNumber;
-  final String date;
-  final double paidAmount;
-  final double totalAmount;
-  final InvoicePaymentStatus status;
 }

@@ -111,9 +111,9 @@ class _DepositScreenState extends State<DepositScreen> {
               ),
             ),
             SizedBox(
-              height: 56,
+              height: 48,
               child: ListView(
-                padding: const EdgeInsets.fromLTRB(24, 8, 24, 0),
+                padding: const EdgeInsets.fromLTRB(24, 6, 24, 0),
                 scrollDirection: Axis.horizontal,
                 children: [
                   _filterChip('All', null),
@@ -160,18 +160,54 @@ class _DepositScreenState extends State<DepositScreen> {
     final selected = _selectedStatus == status;
     return Padding(
       padding: const EdgeInsets.only(right: 8),
-      child: ChoiceChip(
-        label: Text('$label ${_countFor(status)}'),
+      child: Semantics(
+        button: true,
         selected: selected,
-        onSelected: (_) => setState(() => _selectedStatus = status),
-        selectedColor: const Color(0xFF071957),
-        backgroundColor: const Color(0xFFF1F1F5),
-        labelStyle: TextStyle(
-          color: selected ? Colors.white : Colors.black,
-          fontSize: 13,
+        label: '$label ${_countFor(status)}',
+        child: GestureDetector(
+          key: Key('deposit-filter-${status?.name ?? 'all'}'),
+          onTap: () => setState(() => _selectedStatus = status),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            decoration: BoxDecoration(
+              color: selected
+                  ? const Color(0xFF071957)
+                  : const Color(0xFFEDEDF2),
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Row(
+              children: [
+                Text(
+                  label,
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: selected ? FontWeight.bold : FontWeight.normal,
+                    color: selected ? Colors.white : Colors.grey.shade700,
+                  ),
+                ),
+                const SizedBox(width: 6),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 7,
+                    vertical: 2,
+                  ),
+                  decoration: BoxDecoration(
+                    color: selected ? Colors.white24 : const Color(0xFFD0D2DC),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Text(
+                    _countFor(status).toString(),
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                      color: selected ? Colors.white : Colors.grey.shade700,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
         ),
-        showCheckmark: false,
-        materialTapTargetSize: MaterialTapTargetSize.padded,
       ),
     );
   }

@@ -4,6 +4,7 @@ import 'package:src/main.dart';
 import 'package:src/screens/home_screen.dart';
 import 'package:src/screens/fleet/fleet_screen.dart';
 import 'package:src/screens/payments/deposit_screen.dart';
+import 'package:src/screens/payments/invoice_detail_screen.dart';
 import 'package:src/screens/payments/invoice_screen.dart';
 import 'package:src/widgets/app_top_bar.dart';
 import 'package:src/widgets/deposit_card.dart';
@@ -106,7 +107,7 @@ void main() {
     expect(find.text('Payment'), findsOneWidget);
     expect(find.text('INV-20261110-001'), findsOneWidget);
 
-    await tester.tap(find.text('Unpaid 1'));
+    await tester.tap(find.byKey(const Key('invoice-filter-unpaid')));
     await tester.pumpAndSettle();
     expect(find.text('Grace Ling'), findsOneWidget);
     expect(find.text('Kevin Lim'), findsNothing);
@@ -114,6 +115,34 @@ void main() {
     await tester.enterText(find.byKey(const Key('invoice-search')), 'INV-2026');
     await tester.pumpAndSettle();
     expect(find.text('Grace Ling'), findsOneWidget);
+  });
+
+  testWidgets('Invoice cards open their matching detail screens', (
+    tester,
+  ) async {
+    await tester.pumpWidget(const RentEasyApp());
+    await tester.tap(find.text('Payment'));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('INV-20261110-001'));
+    await tester.pumpAndSettle();
+    expect(find.byType(InvoiceDetailScreen), findsOneWidget);
+    expect(find.text('Grace Ling'), findsOneWidget);
+    expect(find.text('Sedan (Toyota Vios)'), findsOneWidget);
+    expect(find.text('RM 890.00'), findsNWidgets(2));
+    expect(find.text('No payments yet'), findsOneWidget);
+
+    await tester.pageBack();
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('INV-20261109-003'));
+    await tester.pumpAndSettle();
+    expect(find.text('Kevin Lim'), findsOneWidget);
+    expect(find.text('Partially paid'), findsOneWidget);
+    expect(find.text('Rental charges'), findsOneWidget);
+    expect(find.text('RM 200.00'), findsNWidgets(2));
+    expect(find.text('Balance'), findsOneWidget);
+    expect(find.byTooltip('AI assistant'), findsOneWidget);
+    expect(find.byTooltip('Profile'), findsOneWidget);
   });
 
   testWidgets('Fleet tab shows FleetScreen', (tester) async {
@@ -153,7 +182,7 @@ void main() {
     expect(find.text('Aisha Rahman'), findsOneWidget);
     expect(find.text('Mei Ling Tan'), findsOneWidget);
 
-    await tester.tap(find.text('Checking 1'));
+    await tester.tap(find.byKey(const Key('deposit-filter-checking')));
     await tester.pumpAndSettle();
     expect(find.text('Mei Ling Tan'), findsOneWidget);
     expect(find.text('Aisha Rahman'), findsNothing);
