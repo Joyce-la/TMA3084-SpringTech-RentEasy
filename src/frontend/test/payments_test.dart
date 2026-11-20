@@ -2,6 +2,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:src/main.dart';
 import 'package:src/screens/home_screen.dart';
+import 'package:src/screens/fleet/fleet_screen.dart';
 import 'package:src/screens/payments/deposit_screen.dart';
 import 'package:src/screens/payments/invoice_screen.dart';
 import 'package:src/widgets/app_top_bar.dart';
@@ -31,6 +32,39 @@ void main() {
     await tester.tap(find.byIcon(Icons.person));
     expect(assistantTapped, isTrue);
     expect(profileTapped, isTrue);
+  });
+
+  testWidgets('AppTopBar hides role toggle when isOwner is not provided', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: Scaffold(body: AppTopBar(title: 'Payments')),
+      ),
+    );
+
+    expect(find.text('Owner'), findsNothing);
+    expect(find.text('Staff'), findsNothing);
+  });
+
+  testWidgets('AppTopBar role toggle reports the selected role', (
+    tester,
+  ) async {
+    bool? role;
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: AppTopBar(
+            title: 'Fleet',
+            isOwner: true,
+            onRoleChanged: (v) => role = v,
+          ),
+        ),
+      ),
+    );
+
+    await tester.tap(find.text('Staff'));
+    expect(role, isFalse);
   });
 
   testWidgets('InvoiceCard shows payment status, balance and progress', (
@@ -115,13 +149,21 @@ void main() {
     expect(find.text('Grace Ling'), findsOneWidget);
   });
 
+  testWidgets('Fleet tab shows FleetScreen', (tester) async {
+    await tester.pumpWidget(const RentEasyApp());
+
+    await tester.tap(find.text('Fleet'));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(FleetScreen), findsOneWidget);
+  });
+
   testWidgets('Unimplemented navigation destinations show coming soon text', (
     tester,
   ) async {
     await tester.pumpWidget(const RentEasyApp());
 
     for (final destination in {
-      'Fleet': 'The Fleet screen is coming soon.',
       'Rentals': 'The Rentals screen is coming soon.',
       'Reports': 'The Reports screen is coming soon.',
     }.entries) {
