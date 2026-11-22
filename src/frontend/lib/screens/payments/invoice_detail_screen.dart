@@ -2,6 +2,7 @@ import 'package:material_ui/material_ui.dart';
 
 import '../../mock_data/invoices.dart';
 import '../../widgets/app_top_bar.dart';
+import 'invoice_pdf_preview_screen.dart';
 
 class InvoiceDetailScreen extends StatelessWidget {
   const InvoiceDetailScreen({super.key, required this.invoice});
@@ -73,10 +74,12 @@ class InvoiceDetailScreen extends StatelessWidget {
                           width: 48,
                           height: 48,
                           child: IconButton.filledTonal(
-                            tooltip: 'Download invoice',
-                            onPressed: () => _showMessage(
-                              context,
-                              'Invoice download is not available yet.',
+                            tooltip: 'Preview invoice PDF',
+                            onPressed: () => Navigator.of(context).push(
+                              MaterialPageRoute<void>(
+                                builder: (_) =>
+                                    InvoicePdfPreviewScreen(invoice: invoice),
+                              ),
                             ),
                             icon: const Icon(
                               Icons.download_for_offline_outlined,

@@ -5,6 +5,7 @@ import 'package:src/screens/home_screen.dart';
 import 'package:src/screens/fleet/fleet_screen.dart';
 import 'package:src/screens/payments/deposit_screen.dart';
 import 'package:src/screens/payments/invoice_detail_screen.dart';
+import 'package:src/screens/payments/invoice_pdf_preview_screen.dart';
 import 'package:src/screens/payments/invoice_screen.dart';
 import 'package:src/widgets/app_top_bar.dart';
 import 'package:src/widgets/deposit_card.dart';
@@ -131,6 +132,18 @@ void main() {
     expect(find.text('Sedan (Toyota Vios)'), findsOneWidget);
     expect(find.text('RM 890.00'), findsNWidgets(2));
     expect(find.text('No payments yet'), findsOneWidget);
+
+    await tester.tap(find.byTooltip('Preview invoice PDF'));
+    await tester.pumpAndSettle();
+    expect(find.byType(InvoicePdfPreviewScreen), findsOneWidget);
+    expect(find.text('INV-20261110-001.pdf'), findsOneWidget);
+    expect(find.text('Grace Ling'), findsOneWidget);
+    expect(find.text('RM 890.00'), findsOneWidget);
+    expect(find.text('Print'), findsOneWidget);
+    expect(find.text('Share'), findsOneWidget);
+
+    await tester.tap(find.byTooltip('Back').last);
+    await tester.pumpAndSettle();
 
     await tester.pageBack();
     await tester.pumpAndSettle();

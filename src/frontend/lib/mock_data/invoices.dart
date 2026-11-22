@@ -1,3 +1,5 @@
+import 'database_records.dart';
+
 enum InvoicePaymentStatus { unpaid, partiallyPaid, paid }
 
 class InvoiceData {
@@ -61,145 +63,93 @@ class InvoicePaymentData {
   final double amount;
 }
 
-const mockInvoices = <InvoiceData>[
-  InvoiceData(
-    invoiceNumber: 'INV-20261110-001',
-    customerName: 'Grace Ling',
-    carType: 'Sedan (Toyota Vios)',
-    plateNumber: 'QAA 1234',
-    date: '10 Nov 2026',
-    pickupDate: '10 Nov 2026',
-    returnDate: '13 Nov 2026',
-    rental: 600,
-    delivery: 20,
-    outstation: 10,
-    deposit: 100,
-    addOns: 210,
-    discount: 50,
-    paidAmount: 0,
-    status: InvoicePaymentStatus.unpaid,
-    depositStatus: 'PENDING',
-    depositDetail: 'Not collected yet.',
-    payments: [],
-  ),
-  InvoiceData(
-    invoiceNumber: 'INV-20261109-003',
-    customerName: 'Kevin Lim',
-    carType: 'Hatchback (Perodua Myvi)',
-    plateNumber: 'QA 7345 D',
-    date: '9 Nov 2026',
-    pickupDate: '11 Nov 2026',
-    returnDate: '15 Nov 2026',
-    rental: 300,
-    delivery: 50,
-    outstation: 30,
-    deposit: 100,
-    addOns: 40,
-    discount: 20,
-    paidAmount: 300,
-    status: InvoicePaymentStatus.partiallyPaid,
-    depositStatus: 'HOLDING',
-    depositDetail: 'Refund opens 3 days after the car is returned and checked.',
-    payments: [
-      InvoicePaymentData(
-        date: '9 Nov',
-        method: 'Bank transfer',
-        description: 'Rental charges',
-        amount: 200,
+final mockInvoices = List<InvoiceData>.unmodifiable(
+  mockDatabase['Invoice']!.map(_invoiceFromRecord),
+);
+
+InvoiceData _invoiceFromRecord(Map<String, Object?> invoice) {
+  final rental = _recordById('Rental', 'rentalId', invoice['rentalId']);
+  final vehicle = _recordById('Vehicle', 'vehicleId', rental['vehicleId']);
+  final user = _recordById('User', 'userId', rental['userId']);
+  final deposit = mockDatabase['Deposit']!.firstWhere(
+    (record) => record['rentalId'] == rental['rentalId'],
+  );
+  final charges = mockDatabase['RentalCharge']!
+      .where((record) => record['rentalId'] == rental['rentalId'])
+      .toList();
+  final payments = mockDatabase['Payment']!
+      .where((record) => record['invoiceId'] == invoice['invoiceId'])
+      .map(
+        (payment) => InvoicePaymentData(
+          date: _displayDate(payment['paymentDateTime'], includeYear: false),
+          method: _string(payment, 'paymentMethod'),
+          description: _string(payment, 'paymentType'),
+          amount: _number(payment, 'paymentAmount'),
+        ),
+      )
+      .toList();
+
+  return InvoiceData(
+    invoiceNumber: _string(invoice, 'invoiceNo'),
+    customerName: _string(user, 'name'),
+    carType: '${_string(vehicle, 'category')} (${_string(vehicle, 'model')})',
+    plateNumber: _string(vehicle, 'plateNo'),
+    date: _displayDate(invoice['issueDate']),
+    pickupDate: _displayDate(rental['pickupDateTime']),
+    returnDate: _displayDate(rental['returnDateTime']),
+    rental: _number(rental, 'rentalPrice'),
+    delivery: _chargeTotal(charges, 'Delivery'),
+    outstation: _chargeTotal(charges, 'Outstation'),
+    deposit: _number(invoice, 'depositAmount'),
+    addOns: _chargeTotal(charges, 'Add-ons'),
+    discount: -_chargeTotal(charges, 'Discount'),
+    paidAmount: _number(invoice, 'paidAmount'),
+    status: switch (_string(invoice, 'paymentStatus')) {
+      'unpaid' => InvoicePaymentStatus.unpaid,
+      'partiallyPaid' => InvoicePaymentStatus.partiallyPaid,
+      'paid' => InvoicePaymentStatus.paid,
+      final status => throw StateError(
+        'Unknown invoice payment status: $status',
       ),
-      InvoicePaymentData(
-        date: '10 Nov',
-        method: 'Cash',
-        description: 'Deposit',
-        amount: 100,
-      ),
-    ],
-  ),
-  InvoiceData(
-    invoiceNumber: 'INV-20261105-001',
-    customerName: 'Mei Ling Tan',
-    carType: 'Compact (Perodua Axia)',
-    plateNumber: 'QB 4410 M',
-    date: '5 Nov 2026',
-    pickupDate: '5 Nov 2026',
-    returnDate: '7 Nov 2026',
-    rental: 350,
-    delivery: 20,
-    outstation: 0,
-    deposit: 100,
-    addOns: 50,
-    discount: 20,
-    paidAmount: 500,
-    status: InvoicePaymentStatus.paid,
-    depositStatus: 'REFUNDED',
-    depositDetail: 'Refunded after the car was returned and checked.',
-    payments: [
-      InvoicePaymentData(
-        date: '5 Nov',
-        method: 'Bank transfer',
-        description: 'Rental charges',
-        amount: 400,
-      ),
-      InvoicePaymentData(
-        date: '5 Nov',
-        method: 'Cash',
-        description: 'Remaining balance',
-        amount: 100,
-      ),
-    ],
-  ),
-  InvoiceData(
-    invoiceNumber: 'INV-20261101-002',
-    customerName: 'Aisha Rahman',
-    carType: 'Sedan (Honda City)',
-    plateNumber: 'QK 8821 B',
-    date: '1 Nov 2026',
-    pickupDate: '1 Nov 2026',
-    returnDate: '4 Nov 2026',
-    rental: 300,
-    delivery: 20,
-    outstation: 20,
-    deposit: 100,
-    addOns: 80,
-    discount: 20,
-    paidAmount: 500,
-    status: InvoicePaymentStatus.paid,
-    depositStatus: 'REFUNDED',
-    depositDetail: 'Refunded after the car was returned and checked.',
-    payments: [
-      InvoicePaymentData(
-        date: '1 Nov',
-        method: 'Bank transfer',
-        description: 'Invoice paid in full',
-        amount: 500,
-      ),
-    ],
-  ),
-  InvoiceData(
-    invoiceNumber: 'INV-20261028-001',
-    customerName: 'Farid Ismail',
-    carType: 'SUV (Perodua Aruz)',
-    plateNumber: 'QA 9902 F',
-    date: '28 Oct 2026',
-    pickupDate: '1 Nov 2026',
-    returnDate: '3 Nov 2026',
-    rental: 400,
-    delivery: 0,
-    outstation: 0,
-    deposit: 100,
-    addOns: 20,
-    discount: 20,
-    paidAmount: 500,
-    status: InvoicePaymentStatus.paid,
-    depositStatus: 'REFUNDED',
-    depositDetail: 'Refunded after the car was returned and checked.',
-    payments: [
-      InvoicePaymentData(
-        date: '1 Nov',
-        method: 'Cash',
-        description: 'Invoice paid in full',
-        amount: 500,
-      ),
-    ],
-  ),
-];
+    },
+    depositStatus: _string(deposit, 'depositStatus').toUpperCase(),
+    depositDetail: _string(deposit, 'description'),
+    payments: List.unmodifiable(payments),
+  );
+}
+
+Map<String, Object?> _recordById(String table, String idField, Object? id) {
+  return mockDatabase[table]!.firstWhere((record) => record[idField] == id);
+}
+
+String _string(Map<String, Object?> record, String field) =>
+    record[field] as String;
+
+double _number(Map<String, Object?> record, String field) =>
+    (record[field] as num).toDouble();
+
+double _chargeTotal(List<Map<String, Object?>> charges, String chargeType) {
+  return charges
+      .where((charge) => charge['chargeType'] == chargeType)
+      .fold(0.0, (total, charge) => total + _number(charge, 'chargeAmount'));
+}
+
+String _displayDate(Object? value, {bool includeYear = true}) {
+  final date = DateTime.parse(value as String);
+  const months = [
+    'Jan',
+    'Feb',
+    'Mar',
+    'Apr',
+    'May',
+    'Jun',
+    'Jul',
+    'Aug',
+    'Sep',
+    'Oct',
+    'Nov',
+    'Dec',
+  ];
+  final formatted = '${date.day} ${months[date.month - 1]}';
+  return includeYear ? '$formatted ${date.year}' : formatted;
+}
