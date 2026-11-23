@@ -6,6 +6,7 @@ import 'package:src/mock_data/vehicles.dart';
 import 'package:src/providers/fleet_provider.dart';
 import 'package:src/screens/fleet/fleet_screen.dart';
 import 'package:src/screens/fleet/vehicle_details_screen.dart';
+import 'package:src/screens/fleet/add_vehicle_screen.dart';
 import 'package:src/screens/fleet/edit_vehicle_screen.dart';
 import 'package:src/widgets/vehicle_card.dart';
 
@@ -67,6 +68,14 @@ void main() {
     expect(provider.countFor(VehicleStatus.available), 0);
   });
 
+  test('FleetProvider rejects a duplicate plate number', () {
+    final provider = FleetProvider(initialVehicles: [_testVehicle()]);
+
+    expect(provider.hasPlate('test1'), isTrue); // spaces/case ignored
+    provider.addVehicle(_testVehicle(plate: 'test 1'));
+
+    expect(provider.vehicles, hasLength(1));
+  });
   test('VehicleData only reports tax expiry within 30 days', () {
     final soon = VehicleData(
       plateNumber: 'SOON 1',
@@ -137,6 +146,21 @@ void main() {
       ),
       findsOneWidget,
     );
+  });
+
+  testWidgets('Add form rejects an existing plate number', (tester) async {
+    await tester.pumpWidget(
+      ChangeNotifierProvider(
+        create: (_) => FleetProvider(initialVehicles: [_testVehicle()]),
+        child: const MaterialApp(home: AddVehicleScreen()),
+      ),
+    );
+
+    await tester.enterText(find.byType(TextFormField).first, 'TEST 1');
+    await tester.tap(find.text('Add'));
+    await tester.pump();
+
+    expect(find.text('Plate already exists'), findsOneWidget);
   });
 
   testWidgets('Vehicle card opens its details screen', (tester) async {
