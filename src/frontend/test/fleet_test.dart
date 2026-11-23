@@ -123,13 +123,11 @@ void main() {
       findsOneWidget,
     );
 
-    // Switch away and back.
     await tester.tap(find.text('Rentals'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Fleet'));
     await tester.pumpAndSettle();
 
-    // The vehicle is still there and the search box matches the filter.
     expect(provider.vehicles.any((v) => v.plateNumber == 'KEEP 1'), isTrue);
     expect(find.widgetWithText(TextField, 'KEEP 1'), findsOneWidget);
     expect(
@@ -172,7 +170,6 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.byType(EditVehicleScreen), findsOneWidget);
 
-    // Fields: plate (0), make (1), model (2)
     await tester.enterText(find.byType(TextFormField).at(2), 'Edited Model');
     await tester.tap(find.text('Save'));
     await tester.pumpAndSettle();
@@ -188,7 +185,6 @@ void main() {
       MaterialApp(home: EditVehicleScreen(vehicle: _testVehicle())),
     );
 
-    // The plate field is the first TextFormField.
     await tester.enterText(find.byType(TextFormField).first, 'CHANGED 9');
     await tester.pump();
 
@@ -222,5 +218,29 @@ void main() {
 
     expect(find.byType(FleetScreen), findsOneWidget);
     expect(provider.vehicles.length, before - 1);
+  });
+
+  testWidgets('A rented vehicle cannot be removed', (tester) async {
+    await tester.pumpWidget(const RentEasyApp());
+    await tester.tap(find.text('Fleet'));
+    await tester.pumpAndSettle();
+
+    final provider = tester
+        .element(find.byType(FleetScreen))
+        .read<FleetProvider>();
+    provider.addVehicle(_testVehicle(plate: 'RENT 1')); // status: rented
+    await tester.enterText(find.byType(TextField), 'RENT 1');
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byType(VehicleCard).first);
+    await tester.pumpAndSettle();
+
+    await tester.ensureVisible(find.text('Remove'));
+    await tester.tap(find.text('Remove'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('A rented vehicle cannot be removed.'), findsOneWidget);
+    expect(find.byType(AlertDialog), findsNothing);
+    expect(provider.vehicles.any((v) => v.plateNumber == 'RENT 1'), isTrue);
   });
 }

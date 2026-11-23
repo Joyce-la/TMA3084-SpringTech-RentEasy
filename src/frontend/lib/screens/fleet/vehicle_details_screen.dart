@@ -121,7 +121,7 @@ class VehicleDetailsScreen extends StatelessWidget {
                   borderRadius: BorderRadius.circular(16),
                 ),
               ),
-              onPressed: () => _confirmRemove(context),
+              onPressed: () => _confirmRemove(context, current),
               child: const Text(
                 'Remove',
                 style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
@@ -146,12 +146,19 @@ class VehicleDetailsScreen extends StatelessWidget {
     ).showSnackBar(SnackBar(content: Text('${updated.plateNumber} updated.')));
   }
 
-  Future<void> _confirmRemove(BuildContext context) async {
+  Future<void> _confirmRemove(BuildContext context, VehicleData current) async {
+    if (current.status == VehicleStatus.rented) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('A rented vehicle cannot be removed.')),
+      );
+      return;
+    }
+
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
         title: const Text('Remove vehicle?'),
-        content: Text('${vehicle.plateNumber} will be removed from the fleet.'),
+        content: Text('${current.plateNumber} will be removed from the fleet.'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext, false),
@@ -166,7 +173,7 @@ class VehicleDetailsScreen extends StatelessWidget {
     );
 
     if (confirmed != true || !context.mounted) return;
-    context.read<FleetProvider>().removeVehicle(vehicle.plateNumber);
+    context.read<FleetProvider>().removeVehicle(current.plateNumber);
     Navigator.pop(context);
   }
 
