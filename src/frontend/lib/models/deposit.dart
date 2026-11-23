@@ -26,4 +26,21 @@ class DepositData {
   final String statusDetail;
   final double? refundedAmount;
   final String? actionLabel;
+
+  DepositData copyWith({
+    DepositStatus? status,
+    double? collectedAmount,
+    String? statusDetail,
+  }) {
+    return DepositData(
+      invoiceNumber: invoiceNumber,
+      customerName: customerName,
+      plateNumber: plateNumber,
+      status: status ?? this.status,
+      collectedAmount: collectedAmount ?? this.collectedAmount,
+      statusDetail: statusDetail ?? this.statusDetail,
+      refundedAmount: refundedAmount,
+      actionLabel: actionLabel,
+    );
+  }
 }

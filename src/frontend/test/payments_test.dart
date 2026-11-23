@@ -1,5 +1,6 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:provider/provider.dart';
 import 'package:src/main.dart';
 import 'package:src/screens/home_screen.dart';
 import 'package:src/screens/fleet/fleet_screen.dart';
@@ -12,6 +13,7 @@ import 'package:src/widgets/app_top_bar.dart';
 import 'package:src/widgets/deposit_card.dart';
 import 'package:src/widgets/invoice_card.dart';
 import 'package:src/providers/invoice_provider.dart';
+import 'package:src/providers/deposit_provider.dart';
 import 'package:src/mock_data/deposits.dart';
 
 void main() {
@@ -237,6 +239,45 @@ void main() {
       find.byKey(const Key('payment-deposit')),
     );
     expect(depositField.readOnly, isTrue);
+  });
+
+  testWidgets('Saving deposit updates invoice and deposit statuses', (
+    tester,
+  ) async {
+    await tester.pumpWidget(const RentEasyApp());
+    await tester.tap(find.text('Payment'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('INV-20261110-001'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Add payment'));
+    await tester.pumpAndSettle();
+
+    await tester.enterText(find.byKey(const Key('payment-total')), '100.00');
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byKey(const Key('payment-rental')), '0.00');
+    await tester.enterText(find.byKey(const Key('payment-deposit')), '100.00');
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('save-payment')));
+    await tester.pumpAndSettle();
+
+    final invoiceProvider = Provider.of<InvoiceProvider>(
+      tester.element(find.byType(InvoiceDetailScreen)),
+      listen: false,
+    );
+    final updatedInvoice = invoiceProvider.invoices.firstWhere(
+      (invoice) => invoice.invoiceNumber == 'INV-20261110-001',
+    );
+    expect(updatedInvoice.status, InvoicePaymentStatus.partiallyPaid);
+    expect(updatedInvoice.paidAmount, 100);
+    expect(updatedInvoice.depositStatus, 'HOLDING');
+    final depositProvider = Provider.of<DepositProvider>(
+      tester.element(find.byType(InvoiceDetailScreen)),
+      listen: false,
+    );
+    final updatedDeposit = depositProvider.deposits.firstWhere(
+      (deposit) => deposit.invoiceNumber == 'INV-20261110-001',
+    );
+    expect(updatedDeposit.status, DepositStatus.holding);
   });
 
   testWidgets('Payment above the balance is rejected and not saved', (

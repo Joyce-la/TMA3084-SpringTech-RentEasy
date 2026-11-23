@@ -2,7 +2,10 @@ import 'package:material_ui/material_ui.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
+import '../../widgets/app_top_bar.dart';
+import '../../models/deposit.dart';
 import '../../models/invoice.dart';
+import '../../providers/deposit_provider.dart';
 import '../../providers/invoice_provider.dart';
 
 class AddPaymentScreen extends StatefulWidget {
@@ -149,32 +152,13 @@ class _AddPaymentScreenState extends State<AddPaymentScreen> {
                     onPressed: () => Navigator.of(context).pop(),
                     icon: const Icon(Icons.arrow_back_ios_new),
                   ),
-                  const Text(
-                    'Record Payment',
-                    style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800),
-                  ),
-                  const Spacer(),
-                  Container(
-                    width: 40,
-                    height: 40,
-                    alignment: Alignment.center,
-                    decoration: const BoxDecoration(
-                      color: Color(0xFFDADDE7),
-                      shape: BoxShape.circle,
+                  Expanded(
+                    child: AppTopBar(
+                      title: 'Record Payment',
+                      onAssistantTap: () =>
+                          _showMessage(context, 'AI assistant'),
+                      onProfileTap: () => _showMessage(context, 'Profile'),
                     ),
-                    child: const Text(
-                      'AI',
-                      style: TextStyle(
-                        color: navy,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  const CircleAvatar(
-                    radius: 20,
-                    backgroundColor: Color(0xFFDADDE7),
-                    child: Icon(Icons.person, color: Colors.black87),
                   ),
                 ],
               ),
@@ -707,6 +691,12 @@ class _AddPaymentScreenState extends State<AddPaymentScreen> {
     }
   }
 
+  void _showMessage(BuildContext context, String message) {
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text('$message is not available yet.')));
+  }
+
   void _savePayment(BuildContext context) {
     if (!_canSave) return;
     final total = _parse(_totalController);
@@ -750,6 +740,27 @@ class _AddPaymentScreenState extends State<AddPaymentScreen> {
         depositStatus: newDepositStatus,
       ),
     );
+    if (context.mounted) {
+      final depositProvider = context.read<DepositProvider>();
+      final matchingDeposit = depositProvider.deposits
+          .where((item) => item.invoiceNumber == current.invoiceNumber)
+          .firstOrNull;
+      if (matchingDeposit != null) {
+        final depositCollected = matchingDeposit.collectedAmount + deposit;
+        final depositFullyCollected = _paidDeposit + deposit >= current.deposit;
+        depositProvider.updateDeposit(
+          matchingDeposit.copyWith(
+            status: depositFullyCollected
+                ? DepositStatus.holding
+                : matchingDeposit.status,
+            collectedAmount: depositCollected,
+            statusDetail: depositFullyCollected
+                ? 'Deposit fully collected · held'
+                : matchingDeposit.statusDetail,
+          ),
+        );
+      }
+    }
     Navigator.of(context).pop();
   }
 }
