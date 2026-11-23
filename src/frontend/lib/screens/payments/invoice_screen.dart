@@ -1,6 +1,7 @@
 import 'package:material_ui/material_ui.dart';
+import 'package:provider/provider.dart';
 
-import '../../mock_data/invoices.dart';
+import '../../providers/invoice_provider.dart';
 import '../../widgets/app_top_bar.dart';
 import '../../widgets/invoice_card.dart';
 import 'deposit_screen.dart';
@@ -17,30 +18,10 @@ class InvoiceScreen extends StatefulWidget {
 }
 
 class _InvoiceScreenState extends State<InvoiceScreen> {
-  String _searchQuery = '';
-  InvoicePaymentStatus? _selectedStatus;
-
-  List<InvoiceData> get _visibleInvoices {
-    final query = _searchQuery.trim().toLowerCase();
-    return mockInvoices.where((invoice) {
-      final matchesStatus =
-          _selectedStatus == null || invoice.status == _selectedStatus;
-      final matchesSearch =
-          query.isEmpty ||
-          invoice.customerName.toLowerCase().contains(query) ||
-          invoice.plateNumber.toLowerCase().contains(query) ||
-          invoice.invoiceNumber.toLowerCase().contains(query);
-      return matchesStatus && matchesSearch;
-    }).toList();
-  }
-
-  int _countFor(InvoicePaymentStatus? status) {
-    if (status == null) return mockInvoices.length;
-    return mockInvoices.where((invoice) => invoice.status == status).length;
-  }
-
   @override
   Widget build(BuildContext context) {
+    final invoiceProvider = context.watch<InvoiceProvider>();
+    final visibleInvoices = invoiceProvider.visibleInvoices;
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
@@ -79,7 +60,7 @@ class _InvoiceScreenState extends State<InvoiceScreen> {
                       borderSide: BorderSide.none,
                     ),
                   ),
-                  onChanged: (value) => setState(() => _searchQuery = value),
+                  onChanged: invoiceProvider.setSearchQuery,
                 ),
               ),
             ),
@@ -89,22 +70,34 @@ class _InvoiceScreenState extends State<InvoiceScreen> {
                 padding: const EdgeInsets.symmetric(horizontal: 24),
                 scrollDirection: Axis.horizontal,
                 children: [
-                  _filterChip('All', null),
-                  _filterChip('Unpaid', InvoicePaymentStatus.unpaid),
-                  _filterChip('Partial', InvoicePaymentStatus.partiallyPaid),
-                  _filterChip('Paid', InvoicePaymentStatus.paid),
+                  _filterChip(invoiceProvider, 'All', null),
+                  _filterChip(
+                    invoiceProvider,
+                    'Unpaid',
+                    InvoicePaymentStatus.unpaid,
+                  ),
+                  _filterChip(
+                    invoiceProvider,
+                    'Partial',
+                    InvoicePaymentStatus.partiallyPaid,
+                  ),
+                  _filterChip(
+                    invoiceProvider,
+                    'Paid',
+                    InvoicePaymentStatus.paid,
+                  ),
                 ],
               ),
             ),
             Expanded(
-              child: _visibleInvoices.isEmpty
+              child: visibleInvoices.isEmpty
                   ? const Center(child: Text('No invoices found.'))
                   : ListView.separated(
                       padding: const EdgeInsets.fromLTRB(24, 8, 24, 16),
-                      itemCount: _visibleInvoices.length,
+                      itemCount: visibleInvoices.length,
                       separatorBuilder: (_, _) => const SizedBox(height: 8),
                       itemBuilder: (context, index) {
-                        final invoice = _visibleInvoices[index];
+                        final invoice = visibleInvoices[index];
                         return InvoiceCard(
                           key: ValueKey(invoice.invoiceNumber),
                           invoiceNumber: invoice.invoiceNumber,
@@ -137,17 +130,22 @@ class _InvoiceScreenState extends State<InvoiceScreen> {
     );
   }
 
-  Widget _filterChip(String label, InvoicePaymentStatus? status) {
-    final selected = _selectedStatus == status;
+  Widget _filterChip(
+    InvoiceProvider invoiceProvider,
+    String label,
+    InvoicePaymentStatus? status,
+  ) {
+    final selected = invoiceProvider.selectedStatus == status;
+    final count = invoiceProvider.countFor(status);
     return Padding(
       padding: const EdgeInsets.only(right: 8),
       child: Semantics(
         button: true,
         selected: selected,
-        label: '$label ${_countFor(status)}',
+        label: '$label $count',
         child: GestureDetector(
           key: Key('invoice-filter-${status?.name ?? 'all'}'),
-          onTap: () => setState(() => _selectedStatus = status),
+          onTap: () => invoiceProvider.setSelectedStatus(status),
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 12),
             decoration: BoxDecoration(
@@ -177,7 +175,7 @@ class _InvoiceScreenState extends State<InvoiceScreen> {
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: Text(
-                    _countFor(status).toString(),
+                    count.toString(),
                     style: TextStyle(
                       fontSize: 11,
                       fontWeight: FontWeight.w600,

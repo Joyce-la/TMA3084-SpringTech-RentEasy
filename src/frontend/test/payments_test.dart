@@ -10,8 +10,29 @@ import 'package:src/screens/payments/invoice_screen.dart';
 import 'package:src/widgets/app_top_bar.dart';
 import 'package:src/widgets/deposit_card.dart';
 import 'package:src/widgets/invoice_card.dart';
+import 'package:src/providers/invoice_provider.dart';
+import 'package:src/mock_data/deposits.dart';
 
 void main() {
+  test('InvoiceProvider exposes an unmodifiable invoice list', () {
+    final provider = InvoiceProvider();
+
+    expect(
+      () => provider.invoices.add(provider.invoices.first),
+      throwsUnsupportedError,
+    );
+  });
+
+  test('Deposit mock conversion produces complete UI data', () {
+    expect(mockDeposits, isNotEmpty);
+    for (final deposit in mockDeposits) {
+      expect(deposit.customerName, isNotEmpty);
+      expect(deposit.plateNumber, isNotEmpty);
+      expect(deposit.invoiceNumber, isNotEmpty);
+      expect(deposit.collectedAmount >= 0, isTrue);
+    }
+  });
+
   testWidgets('AppTopBar displays its title and calls header actions', (
     tester,
   ) async {

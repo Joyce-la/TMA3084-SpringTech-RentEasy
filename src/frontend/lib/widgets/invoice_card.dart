@@ -1,8 +1,8 @@
 import 'package:material_ui/material_ui.dart';
 
-import '../mock_data/invoices.dart' show InvoicePaymentStatus;
+import '../models/invoice.dart';
 
-export '../mock_data/invoices.dart' show InvoicePaymentStatus;
+export '../models/invoice.dart' show InvoicePaymentStatus;
 
 class InvoiceCard extends StatelessWidget {
   const InvoiceCard({

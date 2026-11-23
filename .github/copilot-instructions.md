@@ -7,6 +7,10 @@
 - Accessibility: tap targets at least 48x48, good text contrast, works on small and large phones.
 - Every new widget needs a widget test in test/.
 
+## Code requirements
+
+- Maintain a clean, readable, maintainable, consistent code style.
+
 ## Widgets
 
 - Widgets are small, reusable, with const constructors and no business logic inside.

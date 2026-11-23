@@ -3,6 +3,9 @@ import 'package:src/screens/home_screen.dart';
 import 'package:src/screens/fleet/fleet_screen.dart';
 import 'package:src/screens/payments/deposit_screen.dart';
 import 'package:src/screens/payments/invoice_screen.dart';
+import 'package:provider/provider.dart';
+import 'package:src/providers/deposit_provider.dart';
+import 'package:src/providers/invoice_provider.dart';
 
 void main() {
   runApp(const RentEasyApp());
@@ -13,14 +16,21 @@ class RentEasyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'RentEasy',
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF071957)),
-        useMaterial3: true,
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => InvoiceProvider()),
+        ChangeNotifierProvider(create: (_) => DepositProvider()),
+      ],
+      child: MaterialApp(
+        title: 'RentEasy',
+        debugShowCheckedModeBanner: false,
+        theme: ThemeData(
+          colorScheme:
+              ColorScheme.fromSeed(seedColor: const Color(0xFF071957)),
+          useMaterial3: true,
+        ),
+        home: const BottomNav(),
       ),
-      home: const BottomNav(),
     );
   }
 }
