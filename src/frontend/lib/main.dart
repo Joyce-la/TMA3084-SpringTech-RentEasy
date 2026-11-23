@@ -4,6 +4,7 @@ import 'package:src/screens/fleet/fleet_screen.dart';
 import 'package:src/screens/payments/deposit_screen.dart';
 import 'package:src/screens/payments/invoice_screen.dart';
 import 'package:provider/provider.dart';
+import 'package:src/providers/fleet_provider.dart';
 import 'package:src/providers/deposit_provider.dart';
 import 'package:src/providers/invoice_provider.dart';
 
@@ -18,6 +19,7 @@ class RentEasyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
+        ChangeNotifierProvider(create: (_) => FleetProvider()),
         ChangeNotifierProvider(create: (_) => InvoiceProvider()),
         ChangeNotifierProvider(create: (_) => DepositProvider()),
       ],

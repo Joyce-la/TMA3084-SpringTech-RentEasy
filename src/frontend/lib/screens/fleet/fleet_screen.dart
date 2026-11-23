@@ -1,28 +1,11 @@
 import 'package:material_ui/material_ui.dart';
+import 'package:provider/provider.dart';
+import 'package:src/providers/fleet_provider.dart';
 import 'package:src/widgets/app_top_bar.dart';
 import 'package:src/widgets/vehicle_card.dart';
 
+import '../../mock_data/vehicles.dart';
 import 'add_vehicle_screen.dart';
-
-enum VehicleStatus { available, rented, maintenance, unavailable }
-
-class Vehicle {
-  final String plate;
-  final String name;
-  final String type;
-  final int services;
-  final VehicleStatus status;
-  final int? taxExpiryDays;
-
-  const Vehicle({
-    required this.plate,
-    required this.name,
-    required this.type,
-    required this.services,
-    required this.status,
-    this.taxExpiryDays,
-  });
-}
 
 class FleetScreen extends StatefulWidget {
   const FleetScreen({super.key});
@@ -34,64 +17,27 @@ class FleetScreen extends StatefulWidget {
 class _FleetScreenState extends State<FleetScreen> {
   static const Color navyBlue = Color(0xFF071957);
 
-  String searchQuery = '';
-  VehicleStatus? selectedFilter;
+  // Only holds the text box; all other state lives in FleetProvider.
+  late final TextEditingController _searchController;
 
-  // Sample fleet data (prototype only)
-  final List<Vehicle> vehicles = [
-    Vehicle(
-      plate: 'QAA 1234',
-      name: 'Toyota Vios 2022',
-      type: 'Sedan',
-      services: 3,
-      status: VehicleStatus.available,
-    ),
-    Vehicle(
-      plate: 'QAB 4567',
-      name: 'Honda City 2021',
-      type: 'Sedan',
-      services: 5,
-      status: VehicleStatus.rented,
-      taxExpiryDays: 18,
-    ),
-    Vehicle(
-      plate: 'QAA 7890',
-      name: 'Perodua Axia 2023',
-      type: 'Hatchback',
-      services: 10,
-      status: VehicleStatus.available,
-    ),
-    Vehicle(
-      plate: 'QAA 5580',
-      name: 'Toyota Vios 2022',
-      type: 'Sedan',
-      services: 7,
-      status: VehicleStatus.maintenance,
-    ),
-  ];
-
-  List<Vehicle> get filteredVehicles {
-    final query = searchQuery.trim().toLowerCase();
-
-    return vehicles.where((v) {
-      final matchesFilter =
-          selectedFilter == null || v.status == selectedFilter;
-      final matchesSearch =
-          query.isEmpty ||
-          v.plate.toLowerCase().contains(query) ||
-          v.name.toLowerCase().contains(query);
-      return matchesFilter && matchesSearch;
-    }).toList();
+  @override
+  void initState() {
+    super.initState();
+    _searchController = TextEditingController(
+      text: context.read<FleetProvider>().searchQuery,
+    );
   }
 
-  int countFor(VehicleStatus? status) {
-    if (status == null) return vehicles.length;
-    return vehicles.where((v) => v.status == status).length;
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    final list = filteredVehicles;
+    final fleet = context.watch<FleetProvider>();
+    final list = fleet.visibleVehicles;
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -102,15 +48,15 @@ class _FleetScreenState extends State<FleetScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              AppTopBar(title: 'Fleet'),
+              const AppTopBar(title: 'Fleet'),
 
               const SizedBox(height: 12),
 
-              buildSearchBar(),
+              _buildSearchBar(fleet),
 
               const SizedBox(height: 12),
 
-              buildFilterChips(),
+              _buildFilterChips(fleet),
 
               const SizedBox(height: 14),
 
@@ -129,17 +75,17 @@ class _FleetScreenState extends State<FleetScreen> {
                         itemBuilder: (context, index) {
                           final v = list[index];
                           return VehicleCard(
-                            plate: v.plate,
+                            plate: v.plateNumber,
                             name: v.name,
                             type: v.type,
                             services: v.services,
-                            statusLabel: statusLabel(v.status),
+                            statusLabel: _statusLabel(v.status),
                             taxExpiryDays: v.taxExpiryDays,
                             onTap: () {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(
                                   content: Text(
-                                    '${v.plate} details will be developed next.',
+                                    '${v.plateNumber} details will be developed next.',
                                   ),
                                 ),
                               );
@@ -157,17 +103,19 @@ class _FleetScreenState extends State<FleetScreen> {
         backgroundColor: navyBlue,
         foregroundColor: Colors.white,
         onPressed: () async {
-          final newVehicle = await Navigator.push<Vehicle>(
+          final newVehicle = await Navigator.push<VehicleData>(
             context,
             MaterialPageRoute(builder: (_) => const AddVehicleScreen()),
           );
 
           if (newVehicle != null) {
-            setState(() => vehicles.add(newVehicle));
+            fleet.addVehicle(newVehicle);
 
             if (!context.mounted) return;
             ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('${newVehicle.plate} added to fleet.')),
+              SnackBar(
+                content: Text('${newVehicle.plateNumber} added to fleet.'),
+              ),
             );
           }
         },
@@ -180,9 +128,10 @@ class _FleetScreenState extends State<FleetScreen> {
     );
   }
 
-  Widget buildSearchBar() {
+  Widget _buildSearchBar(FleetProvider fleet) {
     return TextField(
-      onChanged: (value) => setState(() => searchQuery = value),
+      controller: _searchController,
+      onChanged: fleet.setSearchQuery,
       decoration: InputDecoration(
         hintText: 'Search plate, make or model',
         hintStyle: TextStyle(fontSize: 14, color: Colors.grey.shade600),
@@ -198,29 +147,29 @@ class _FleetScreenState extends State<FleetScreen> {
     );
   }
 
-  Widget buildFilterChips() {
+  Widget _buildFilterChips(FleetProvider fleet) {
     return SizedBox(
       height: 36,
       child: ListView(
         scrollDirection: Axis.horizontal,
         children: [
-          buildChip('All', null),
-          buildChip('Available', VehicleStatus.available),
-          buildChip('Maintenance', VehicleStatus.maintenance),
-          buildChip('Rented', VehicleStatus.rented),
-          buildChip('Unavailable', VehicleStatus.unavailable),
+          _buildChip(fleet, 'All', null),
+          _buildChip(fleet, 'Available', VehicleStatus.available),
+          _buildChip(fleet, 'Maintenance', VehicleStatus.maintenance),
+          _buildChip(fleet, 'Rented', VehicleStatus.rented),
+          _buildChip(fleet, 'Unavailable', VehicleStatus.unavailable),
         ],
       ),
     );
   }
 
-  Widget buildChip(String label, VehicleStatus? status) {
-    final selected = selectedFilter == status;
+  Widget _buildChip(FleetProvider fleet, String label, VehicleStatus? status) {
+    final selected = fleet.selectedStatus == status;
 
     return Padding(
       padding: const EdgeInsets.only(right: 8),
       child: GestureDetector(
-        onTap: () => setState(() => selectedFilter = status),
+        onTap: () => fleet.setSelectedStatus(status),
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 12),
           decoration: BoxDecoration(
@@ -248,7 +197,7 @@ class _FleetScreenState extends State<FleetScreen> {
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Text(
-                  countFor(status).toString(),
+                  fleet.countFor(status).toString(),
                   style: TextStyle(
                     fontSize: 11,
                     fontWeight: FontWeight.w600,
@@ -263,7 +212,7 @@ class _FleetScreenState extends State<FleetScreen> {
     );
   }
 
-  String statusLabel(VehicleStatus status) {
+  String _statusLabel(VehicleStatus status) {
     switch (status) {
       case VehicleStatus.available:
         return 'AVAILABLE';
