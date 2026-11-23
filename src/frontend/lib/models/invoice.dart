@@ -45,6 +45,34 @@ class InvoiceData {
       rental + delivery + outstation + deposit + addOns - discount;
 
   double get balance => totalAmount - paidAmount;
+
+  InvoiceData copyWith({
+    double? paidAmount,
+    InvoicePaymentStatus? status,
+    List<InvoicePaymentData>? payments,
+    String? depositStatus,
+  }) {
+    return InvoiceData(
+      invoiceNumber: invoiceNumber,
+      customerName: customerName,
+      carType: carType,
+      plateNumber: plateNumber,
+      date: date,
+      pickupDate: pickupDate,
+      returnDate: returnDate,
+      rental: rental,
+      delivery: delivery,
+      outstation: outstation,
+      deposit: deposit,
+      addOns: addOns,
+      discount: discount,
+      paidAmount: paidAmount ?? this.paidAmount,
+      status: status ?? this.status,
+      depositStatus: depositStatus ?? this.depositStatus,
+      depositDetail: depositDetail,
+      payments: payments ?? this.payments,
+    );
+  }
 }
 
 class InvoicePaymentData {

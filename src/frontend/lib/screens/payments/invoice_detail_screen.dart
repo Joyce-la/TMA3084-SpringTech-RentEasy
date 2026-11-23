@@ -1,7 +1,10 @@
 import 'package:material_ui/material_ui.dart';
+import 'package:provider/provider.dart';
 
 import '../../mock_data/invoices.dart';
+import '../../providers/invoice_provider.dart';
 import '../../widgets/app_top_bar.dart';
+import 'add_payment_screen.dart';
 import 'invoice_pdf_preview_screen.dart';
 
 class InvoiceDetailScreen extends StatelessWidget {
@@ -20,6 +23,10 @@ class InvoiceDetailScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final invoice = context.watch<InvoiceProvider>().invoices.firstWhere(
+      (item) => item.invoiceNumber == this.invoice.invoiceNumber,
+      orElse: () => this.invoice,
+    );
     final progress = invoice.totalAmount == 0
         ? 0.0
         : (invoice.paidAmount / invoice.totalAmount).clamp(0.0, 1.0).toDouble();
@@ -187,9 +194,10 @@ class InvoiceDetailScreen extends StatelessWidget {
                 height: 48,
                 child: FilledButton(
                   onPressed: invoice.balance > 0
-                      ? () => _showMessage(
-                          context,
-                          'Payment recording is not available yet.',
+                      ? () => Navigator.of(context).push(
+                          MaterialPageRoute<void>(
+                            builder: (_) => AddPaymentScreen(invoice: invoice),
+                          ),
                         )
                       : null,
                   style: FilledButton.styleFrom(

@@ -7,6 +7,7 @@ import 'package:src/screens/payments/deposit_screen.dart';
 import 'package:src/screens/payments/invoice_detail_screen.dart';
 import 'package:src/screens/payments/invoice_pdf_preview_screen.dart';
 import 'package:src/screens/payments/invoice_screen.dart';
+import 'package:src/screens/payments/add_payment_screen.dart';
 import 'package:src/widgets/app_top_bar.dart';
 import 'package:src/widgets/deposit_card.dart';
 import 'package:src/widgets/invoice_card.dart';
@@ -177,6 +178,86 @@ void main() {
     expect(find.text('Balance'), findsOneWidget);
     expect(find.byTooltip('AI assistant'), findsOneWidget);
     expect(find.byTooltip('Profile'), findsOneWidget);
+  });
+
+  testWidgets('Staff can record a cash payment and reduce the balance', (
+    tester,
+  ) async {
+    await tester.pumpWidget(const RentEasyApp());
+    await tester.tap(find.text('Payment'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('INV-20261109-003'));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Add payment'));
+    await tester.pumpAndSettle();
+    expect(find.byType(AddPaymentScreen), findsOneWidget);
+
+    await tester.enterText(find.byKey(const Key('payment-total')), '100.00');
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byKey(const Key('payment-rental')), '100.00');
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('save-payment')));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(InvoiceDetailScreen), findsOneWidget);
+    expect(find.text('Balance'), findsOneWidget);
+    expect(find.text('RM 100.00'), findsWidgets);
+  });
+
+  testWidgets('Amount to collect groups rental charge components', (
+    tester,
+  ) async {
+    await tester.pumpWidget(const RentEasyApp());
+    await tester.tap(find.text('Payment'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('INV-20261109-003'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Add payment'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Rental charges'), findsOneWidget);
+    expect(find.text('RM 400.00'), findsWidgets);
+    expect(find.text('Invoice'), findsWidgets);
+    expect(find.text('RM 500.00'), findsWidgets);
+  });
+
+  testWidgets('Fully paid deposit allocation is grey and disabled', (
+    tester,
+  ) async {
+    await tester.pumpWidget(const RentEasyApp());
+    await tester.tap(find.text('Payment'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('INV-20261109-003'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Add payment'));
+    await tester.pumpAndSettle();
+
+    final depositField = tester.widget<TextField>(
+      find.byKey(const Key('payment-deposit')),
+    );
+    expect(depositField.readOnly, isTrue);
+  });
+
+  testWidgets('Payment above the balance is rejected and not saved', (
+    tester,
+  ) async {
+    await tester.pumpWidget(const RentEasyApp());
+    await tester.tap(find.text('Payment'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('INV-20261109-003'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Add payment'));
+    await tester.pumpAndSettle();
+
+    await tester.enterText(find.byKey(const Key('payment-total')), '300.00');
+    await tester.pumpAndSettle();
+
+    expect(find.text('Amount exceeds the balance'), findsOneWidget);
+    final saveButton = tester.widget<FilledButton>(
+      find.byKey(const Key('save-payment')),
+    );
+    expect(saveButton.onPressed, isNull);
   });
 
   testWidgets('Fleet tab shows FleetScreen', (tester) async {
