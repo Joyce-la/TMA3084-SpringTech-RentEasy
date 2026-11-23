@@ -205,6 +205,7 @@ void main() {
     expect(find.byType(InvoiceDetailScreen), findsOneWidget);
     expect(find.text('Balance'), findsOneWidget);
     expect(find.text('RM 100.00'), findsWidgets);
+    expect(find.text('Partially paid'), findsOneWidget);
   });
 
   testWidgets('Amount to collect groups rental charge components', (

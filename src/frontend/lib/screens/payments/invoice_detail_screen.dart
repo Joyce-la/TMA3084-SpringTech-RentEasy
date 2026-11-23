@@ -15,7 +15,7 @@ class InvoiceDetailScreen extends StatelessWidget {
   static const _navy = Color(0xFF071957);
   static const _panel = Color(0xFFF1F1F5);
 
-  String get _statusLabel => switch (invoice.status) {
+  String _statusLabel(InvoiceData invoice) => switch (invoice.status) {
     InvoicePaymentStatus.unpaid => 'Unpaid',
     InvoicePaymentStatus.partiallyPaid => 'Partially paid',
     InvoicePaymentStatus.paid => 'Paid',
@@ -75,7 +75,7 @@ class InvoiceDetailScreen extends StatelessWidget {
                             ),
                           ),
                         ),
-                        _invoiceStatus(),
+                        _invoiceStatus(invoice),
                         const SizedBox(width: 8),
                         SizedBox(
                           width: 48,
@@ -153,7 +153,7 @@ class InvoiceDetailScreen extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 8),
-                    _depositCard(),
+                    _depositCard(invoice),
                     const SizedBox(height: 10),
                     _sectionTitle('Payment History'),
                     const SizedBox(height: 8),
@@ -221,7 +221,7 @@ class InvoiceDetailScreen extends StatelessWidget {
     );
   }
 
-  Widget _invoiceStatus() {
+  Widget _invoiceStatus(InvoiceData invoice) {
     return Container(
       constraints: const BoxConstraints(minHeight: 32),
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
@@ -230,13 +230,13 @@ class InvoiceDetailScreen extends StatelessWidget {
         borderRadius: BorderRadius.circular(18),
       ),
       child: Text(
-        _statusLabel,
+        _statusLabel(invoice),
         style: const TextStyle(color: _navy, fontSize: 12),
       ),
     );
   }
 
-  Widget _depositCard() {
+  Widget _depositCard(InvoiceData invoice) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.fromLTRB(14, 10, 14, 10),
