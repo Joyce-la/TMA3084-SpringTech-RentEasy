@@ -5,6 +5,8 @@ import 'package:src/main.dart';
 import 'package:src/mock_data/vehicles.dart';
 import 'package:src/providers/fleet_provider.dart';
 import 'package:src/screens/fleet/fleet_screen.dart';
+import 'package:src/screens/fleet/vehicle_details_screen.dart';
+import 'package:src/screens/fleet/edit_vehicle_screen.dart';
 import 'package:src/widgets/vehicle_card.dart';
 
 VehicleData _testVehicle({String plate = 'TEST 1'}) => VehicleData(
@@ -137,5 +139,88 @@ void main() {
       ),
       findsOneWidget,
     );
+  });
+
+  testWidgets('Vehicle card opens its details screen', (tester) async {
+    await tester.pumpWidget(const RentEasyApp());
+    await tester.tap(find.text('Fleet'));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byType(VehicleCard).first);
+    await tester.pumpAndSettle();
+
+    expect(find.byType(VehicleDetailsScreen), findsOneWidget);
+    expect(find.text('Vehicle Info'), findsOneWidget);
+    expect(find.text('Insurance and Road Tax'), findsOneWidget);
+  });
+
+  testWidgets('Editing a vehicle updates the list', (tester) async {
+    await tester.pumpWidget(const RentEasyApp());
+    await tester.tap(find.text('Fleet'));
+    await tester.pumpAndSettle();
+
+    final provider = tester
+        .element(find.byType(FleetScreen))
+        .read<FleetProvider>();
+    final plate = provider.vehicles.first.plateNumber;
+
+    await tester.tap(find.byType(VehicleCard).first);
+    await tester.pumpAndSettle();
+
+    await tester.ensureVisible(find.text('Edit'));
+    await tester.tap(find.text('Edit'));
+    await tester.pumpAndSettle();
+    expect(find.byType(EditVehicleScreen), findsOneWidget);
+
+    // Fields: plate (0), make (1), model (2)
+    await tester.enterText(find.byType(TextFormField).at(2), 'Edited Model');
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+
+    final edited = provider.vehicles.firstWhere((v) => v.plateNumber == plate);
+    expect(edited.name.endsWith('Edited Model'), isTrue);
+    expect(find.byType(VehicleDetailsScreen), findsOneWidget);
+    expect(find.text('Edited Model'), findsOneWidget);
+  });
+
+  testWidgets('Edit form keeps the plate number read-only', (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(home: EditVehicleScreen(vehicle: _testVehicle())),
+    );
+
+    // The plate field is the first TextFormField.
+    await tester.enterText(find.byType(TextFormField).first, 'CHANGED 9');
+    await tester.pump();
+
+    expect(find.text('TEST 1'), findsOneWidget);
+    expect(find.text('CHANGED 9'), findsNothing);
+  });
+
+  testWidgets('Removing a vehicle returns to Fleet without it', (tester) async {
+    await tester.pumpWidget(const RentEasyApp());
+    await tester.tap(find.text('Fleet'));
+    await tester.pumpAndSettle();
+
+    final provider = tester
+        .element(find.byType(FleetScreen))
+        .read<FleetProvider>();
+    final before = provider.vehicles.length;
+
+    await tester.tap(find.byType(VehicleCard).first);
+    await tester.pumpAndSettle();
+
+    await tester.ensureVisible(find.text('Remove'));
+    await tester.tap(find.text('Remove'));
+    await tester.pumpAndSettle();
+    await tester.tap(
+      find.descendant(
+        of: find.byType(AlertDialog),
+        matching: find.text('Remove'),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.byType(FleetScreen), findsOneWidget);
+    expect(provider.vehicles.length, before - 1);
   });
 }
