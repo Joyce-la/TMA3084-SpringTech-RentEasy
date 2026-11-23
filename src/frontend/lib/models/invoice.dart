@@ -45,7 +45,6 @@ class InvoiceData {
       rental + delivery + outstation + deposit + addOns - discount;
 
   double get balance => totalAmount - paidAmount;
-
 }
 
 class InvoicePaymentData {

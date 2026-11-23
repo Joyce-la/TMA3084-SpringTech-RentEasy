@@ -67,9 +67,7 @@ class InvoiceProvider extends ChangeNotifier {
       (invoice) => invoice.invoiceNumber == invoiceNumber,
     );
     if (!exists) return;
-    _invoices.removeWhere(
-      (invoice) => invoice.invoiceNumber == invoiceNumber,
-    );
+    _invoices.removeWhere((invoice) => invoice.invoiceNumber == invoiceNumber);
     notifyListeners();
   }
 }

@@ -54,7 +54,11 @@ class _DepositScreenState extends State<DepositScreen> {
                     'Eligible to Refund',
                     DepositStatus.eligibleToRefund,
                   ),
-                  _filterChip(depositProvider, 'Checking', DepositStatus.checking),
+                  _filterChip(
+                    depositProvider,
+                    'Checking',
+                    DepositStatus.checking,
+                  ),
                   _filterChip(depositProvider, 'Other', DepositStatus.pending),
                 ],
               ),
@@ -162,4 +166,3 @@ class _DepositScreenState extends State<DepositScreen> {
     );
   }
 }
-

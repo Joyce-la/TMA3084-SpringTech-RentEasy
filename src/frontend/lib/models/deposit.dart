@@ -26,5 +26,4 @@ class DepositData {
   final String statusDetail;
   final double? refundedAmount;
   final String? actionLabel;
-
 }

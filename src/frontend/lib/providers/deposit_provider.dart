@@ -63,9 +63,7 @@ class DepositProvider extends ChangeNotifier {
       (deposit) => deposit.invoiceNumber == invoiceNumber,
     );
     if (!exists) return;
-    _deposits.removeWhere(
-      (deposit) => deposit.invoiceNumber == invoiceNumber,
-    );
+    _deposits.removeWhere((deposit) => deposit.invoiceNumber == invoiceNumber);
     notifyListeners();
   }
 }

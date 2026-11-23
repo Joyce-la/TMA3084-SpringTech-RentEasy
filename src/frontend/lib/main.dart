@@ -25,8 +25,7 @@ class RentEasyApp extends StatelessWidget {
         title: 'RentEasy',
         debugShowCheckedModeBanner: false,
         theme: ThemeData(
-          colorScheme:
-              ColorScheme.fromSeed(seedColor: const Color(0xFF071957)),
+          colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF071957)),
           useMaterial3: true,
         ),
         home: const BottomNav(),

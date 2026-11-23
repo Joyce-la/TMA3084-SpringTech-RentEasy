@@ -87,7 +87,11 @@ String _statusDetail(Map<String, Object?> deposit) {
     303 => 'Day 1 of 3 · opens 10 Nov',
     304 => 'Check ended 7 Nov',
     305 => 'Deducted RM 40.00 · damage',
-    _ => _string(deposit, 'description', fallback: 'Deposit status unavailable'),
+    _ => _string(
+      deposit,
+      'description',
+      fallback: 'Deposit status unavailable',
+    ),
   };
 }
 
@@ -100,11 +104,7 @@ String? _actionLabel(Map<String, Object?> deposit) {
   };
 }
 
-Map<String, Object?>? _findRecord(
-  String table,
-  String field,
-  Object? value,
-) {
+Map<String, Object?>? _findRecord(String table, String field, Object? value) {
   if (value == null) return null;
   for (final record in mockDatabase[table] ?? const []) {
     if (record[field] == value) return record;
