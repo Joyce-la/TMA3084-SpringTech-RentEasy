@@ -1,7 +1,6 @@
 import 'package:material_ui/material_ui.dart';
-import 'package:flutter/services.dart';
 
-import 'fleet_screen.dart';
+import '../../mock_data/vehicles.dart';
 
 class AddVehicleScreen extends StatefulWidget {
   const AddVehicleScreen({super.key});
@@ -21,7 +20,6 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
   final plateController = TextEditingController();
   final makeController = TextEditingController();
   final modelController = TextEditingController();
-  final yearController = TextEditingController();
   final policyController = TextEditingController();
   final insuranceDateController = TextEditingController();
   final roadTaxDateController = TextEditingController();
@@ -45,7 +43,6 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
     plateController.dispose();
     makeController.dispose();
     modelController.dispose();
-    yearController.dispose();
     policyController.dispose();
     insuranceDateController.dispose();
     roadTaxDateController.dispose();
@@ -159,36 +156,20 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
 
         const SizedBox(height: 12),
 
-        buildTwoColumns(
-          buildLabeled(
-            'Year *',
-            TextFormField(
-              controller: yearController,
-              keyboardType: TextInputType.number,
-              inputFormatters: [
-                FilteringTextInputFormatter.digitsOnly,
-                LengthLimitingTextInputFormatter(4),
-              ],
-              decoration: fieldDecoration('2025'),
-              validator: yearValidator,
-            ),
-          ),
-          buildLabeled(
-            'Status *',
-            DropdownButtonFormField<VehicleStatus>(
-              initialValue: selectedStatus,
-              decoration: fieldDecoration(null),
-              borderRadius: BorderRadius.circular(12),
-              items: VehicleStatus.values
-                  .map(
-                    (s) =>
-                        DropdownMenuItem(value: s, child: Text(statusText(s))),
-                  )
-                  .toList(),
-              onChanged: (value) {
-                if (value != null) setState(() => selectedStatus = value);
-              },
-            ),
+        buildLabeled(
+          'Status *',
+          DropdownButtonFormField<VehicleStatus>(
+            initialValue: selectedStatus,
+            decoration: fieldDecoration(null),
+            borderRadius: BorderRadius.circular(12),
+            items: VehicleStatus.values
+                .map(
+                  (s) => DropdownMenuItem(value: s, child: Text(statusText(s))),
+                )
+                .toList(),
+            onChanged: (value) {
+              if (value != null) setState(() => selectedStatus = value);
+            },
           ),
         ),
       ],
@@ -388,23 +369,16 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
   void submit() {
     if (!_formKey.currentState!.validate()) return;
 
-    int? taxDays;
-    if (roadTaxExpiry != null) {
-      final today = DateTime.now();
-      final days = roadTaxExpiry!
-          .difference(DateTime(today.year, today.month, today.day))
-          .inDays;
-      if (days <= 30) taxDays = days;
-    }
-
-    final vehicle = Vehicle(
-      plate: plateController.text.trim().toUpperCase(),
-      name:
-          '${makeController.text.trim()} ${modelController.text.trim()} ${yearController.text.trim()}',
+    final vehicle = VehicleData(
+      plateNumber: plateController.text.trim().toUpperCase(),
+      name: '${makeController.text.trim()} ${modelController.text.trim()}',
       type: selectedType,
-      services: 0,
       status: selectedStatus,
-      taxExpiryDays: taxDays,
+      insuranceNumber: policyController.text.trim(),
+      insuranceCompany: '',
+      insuranceExpiry: insuranceExpiry!,
+      roadTaxExpiry: roadTaxExpiry!,
+      maintenanceRecords: const [],
     );
 
     // Send the new vehicle back to FleetScreen
@@ -413,15 +387,6 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
 
   String? requiredValidator(String? value) {
     if (value == null || value.trim().isEmpty) return 'Required';
-    return null;
-  }
-
-  String? yearValidator(String? value) {
-    if (value == null || value.trim().isEmpty) return 'Required';
-    final year = int.tryParse(value);
-    if (year == null || year < 1990 || year > DateTime.now().year + 1) {
-      return 'Invalid year';
-    }
     return null;
   }
 
