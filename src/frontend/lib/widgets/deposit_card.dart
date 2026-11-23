@@ -1,12 +1,8 @@
 import 'package:material_ui/material_ui.dart';
 
-enum DepositStatus {
-  eligibleToRefund,
-  checking,
-  pending,
-  holding,
-  partiallyRefunded,
-}
+import '../models/deposit.dart';
+
+export '../models/deposit.dart' show DepositStatus;
 
 class DepositCard extends StatelessWidget {
   const DepositCard({

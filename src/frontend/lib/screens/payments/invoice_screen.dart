@@ -1,8 +1,11 @@
 import 'package:material_ui/material_ui.dart';
+import 'package:provider/provider.dart';
 
+import '../../providers/invoice_provider.dart';
 import '../../widgets/app_top_bar.dart';
 import '../../widgets/invoice_card.dart';
 import 'deposit_screen.dart';
+import 'invoice_detail_screen.dart';
 import 'payments_screen_components.dart';
 
 class InvoiceScreen extends StatefulWidget {
@@ -15,78 +18,10 @@ class InvoiceScreen extends StatefulWidget {
 }
 
 class _InvoiceScreenState extends State<InvoiceScreen> {
-  static const _invoices = [
-    InvoiceCardData(
-      invoiceNumber: 'INV-20261110-001',
-      customerName: 'Grace Ling',
-      plateNumber: 'QAA 1234',
-      date: '10 Nov 2026',
-      paidAmount: 0,
-      totalAmount: 890,
-      status: InvoicePaymentStatus.unpaid,
-    ),
-    InvoiceCardData(
-      invoiceNumber: 'INV-20261109-003',
-      customerName: 'Kevin Lim',
-      plateNumber: 'QA 7345 D',
-      date: '9 Nov 2026',
-      paidAmount: 300,
-      totalAmount: 500,
-      status: InvoicePaymentStatus.partiallyPaid,
-    ),
-    InvoiceCardData(
-      invoiceNumber: 'INV-20261105-001',
-      customerName: 'Mei Ling Tan',
-      plateNumber: 'QB 4410 M',
-      date: '5 Nov 2026',
-      paidAmount: 500,
-      totalAmount: 500,
-      status: InvoicePaymentStatus.paid,
-    ),
-    InvoiceCardData(
-      invoiceNumber: 'INV-20261101-002',
-      customerName: 'Aisha Rahman',
-      plateNumber: 'QK 8821 B',
-      date: '1 Nov 2026',
-      paidAmount: 500,
-      totalAmount: 500,
-      status: InvoicePaymentStatus.paid,
-    ),
-    InvoiceCardData(
-      invoiceNumber: 'INV-20261028-001',
-      customerName: 'Farid Ismail',
-      plateNumber: 'QA 9902 F',
-      date: '1 Nov 2026',
-      paidAmount: 500,
-      totalAmount: 500,
-      status: InvoicePaymentStatus.paid,
-    ),
-  ];
-
-  String _searchQuery = '';
-  InvoicePaymentStatus? _selectedStatus;
-
-  List<InvoiceCardData> get _visibleInvoices {
-    final query = _searchQuery.trim().toLowerCase();
-    return _invoices.where((invoice) {
-      final matchesStatus =
-          _selectedStatus == null || invoice.status == _selectedStatus;
-      final matchesSearch =
-          query.isEmpty ||
-          invoice.customerName.toLowerCase().contains(query) ||
-          invoice.plateNumber.toLowerCase().contains(query) ||
-          invoice.invoiceNumber.toLowerCase().contains(query);
-      return matchesStatus && matchesSearch;
-    }).toList();
-  }
-
-  int _countFor(InvoicePaymentStatus? status) {
-    if (status == null) return _invoices.length;
-    return _invoices.where((invoice) => invoice.status == status).length;
-  }
-
   @override
   Widget build(BuildContext context) {
+    final invoiceProvider = context.watch<InvoiceProvider>();
+    final visibleInvoices = invoiceProvider.visibleInvoices;
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
@@ -125,32 +60,44 @@ class _InvoiceScreenState extends State<InvoiceScreen> {
                       borderSide: BorderSide.none,
                     ),
                   ),
-                  onChanged: (value) => setState(() => _searchQuery = value),
+                  onChanged: invoiceProvider.setSearchQuery,
                 ),
               ),
             ),
             SizedBox(
-              height: 48,
+              height: 40,
               child: ListView(
                 padding: const EdgeInsets.symmetric(horizontal: 24),
                 scrollDirection: Axis.horizontal,
                 children: [
-                  _filterChip('All', null),
-                  _filterChip('Unpaid', InvoicePaymentStatus.unpaid),
-                  _filterChip('Partial', InvoicePaymentStatus.partiallyPaid),
-                  _filterChip('Paid', InvoicePaymentStatus.paid),
+                  _filterChip(invoiceProvider, 'All', null),
+                  _filterChip(
+                    invoiceProvider,
+                    'Unpaid',
+                    InvoicePaymentStatus.unpaid,
+                  ),
+                  _filterChip(
+                    invoiceProvider,
+                    'Partial',
+                    InvoicePaymentStatus.partiallyPaid,
+                  ),
+                  _filterChip(
+                    invoiceProvider,
+                    'Paid',
+                    InvoicePaymentStatus.paid,
+                  ),
                 ],
               ),
             ),
             Expanded(
-              child: _visibleInvoices.isEmpty
+              child: visibleInvoices.isEmpty
                   ? const Center(child: Text('No invoices found.'))
                   : ListView.separated(
                       padding: const EdgeInsets.fromLTRB(24, 8, 24, 16),
-                      itemCount: _visibleInvoices.length,
+                      itemCount: visibleInvoices.length,
                       separatorBuilder: (_, _) => const SizedBox(height: 8),
                       itemBuilder: (context, index) {
-                        final invoice = _visibleInvoices[index];
+                        final invoice = visibleInvoices[index];
                         return InvoiceCard(
                           key: ValueKey(invoice.invoiceNumber),
                           invoiceNumber: invoice.invoiceNumber,
@@ -160,6 +107,12 @@ class _InvoiceScreenState extends State<InvoiceScreen> {
                           paidAmount: invoice.paidAmount,
                           totalAmount: invoice.totalAmount,
                           status: invoice.status,
+                          onTap: () => Navigator.of(context).push(
+                            MaterialPageRoute<void>(
+                              builder: (_) =>
+                                  InvoiceDetailScreen(invoice: invoice),
+                            ),
+                          ),
                         );
                       },
                     ),
@@ -177,22 +130,63 @@ class _InvoiceScreenState extends State<InvoiceScreen> {
     );
   }
 
-  Widget _filterChip(String label, InvoicePaymentStatus? status) {
-    final selected = _selectedStatus == status;
+  Widget _filterChip(
+    InvoiceProvider invoiceProvider,
+    String label,
+    InvoicePaymentStatus? status,
+  ) {
+    final selected = invoiceProvider.selectedStatus == status;
+    final count = invoiceProvider.countFor(status);
     return Padding(
       padding: const EdgeInsets.only(right: 8),
-      child: ChoiceChip(
-        label: Text('$label ${_countFor(status)}'),
+      child: Semantics(
+        button: true,
         selected: selected,
-        onSelected: (_) => setState(() => _selectedStatus = status),
-        selectedColor: const Color(0xFF071957),
-        backgroundColor: const Color(0xFFF1F1F5),
-        labelStyle: TextStyle(
-          color: selected ? Colors.white : Colors.black,
-          fontSize: 13,
+        label: '$label $count',
+        child: GestureDetector(
+          key: Key('invoice-filter-${status?.name ?? 'all'}'),
+          onTap: () => invoiceProvider.setSelectedStatus(status),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            decoration: BoxDecoration(
+              color: selected
+                  ? const Color(0xFF071957)
+                  : const Color(0xFFEDEDF2),
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Row(
+              children: [
+                Text(
+                  label,
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: selected ? FontWeight.bold : FontWeight.normal,
+                    color: selected ? Colors.white : Colors.grey.shade700,
+                  ),
+                ),
+                const SizedBox(width: 6),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 7,
+                    vertical: 2,
+                  ),
+                  decoration: BoxDecoration(
+                    color: selected ? Colors.white24 : const Color(0xFFD0D2DC),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Text(
+                    count.toString(),
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                      color: selected ? Colors.white : Colors.grey.shade700,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
         ),
-        showCheckmark: false,
-        materialTapTargetSize: MaterialTapTargetSize.padded,
       ),
     );
   }
@@ -208,24 +202,4 @@ class _InvoiceScreenState extends State<InvoiceScreen> {
       MaterialPageRoute<void>(builder: (_) => const DepositScreen()),
     );
   }
-}
-
-class InvoiceCardData {
-  const InvoiceCardData({
-    required this.invoiceNumber,
-    required this.customerName,
-    required this.plateNumber,
-    required this.date,
-    required this.paidAmount,
-    required this.totalAmount,
-    required this.status,
-  });
-
-  final String invoiceNumber;
-  final String customerName;
-  final String plateNumber;
-  final String date;
-  final double paidAmount;
-  final double totalAmount;
-  final InvoicePaymentStatus status;
 }
