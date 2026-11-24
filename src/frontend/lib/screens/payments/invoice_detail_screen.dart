@@ -1,7 +1,10 @@
 import 'package:material_ui/material_ui.dart';
+import 'package:provider/provider.dart';
 
 import '../../mock_data/invoices.dart';
+import '../../providers/invoice_provider.dart';
 import '../../widgets/app_top_bar.dart';
+import 'add_payment_screen.dart';
 import 'invoice_pdf_preview_screen.dart';
 
 class InvoiceDetailScreen extends StatelessWidget {
@@ -12,7 +15,7 @@ class InvoiceDetailScreen extends StatelessWidget {
   static const _navy = Color(0xFF071957);
   static const _panel = Color(0xFFF1F1F5);
 
-  String get _statusLabel => switch (invoice.status) {
+  String _statusLabel(InvoiceData invoice) => switch (invoice.status) {
     InvoicePaymentStatus.unpaid => 'Unpaid',
     InvoicePaymentStatus.partiallyPaid => 'Partially paid',
     InvoicePaymentStatus.paid => 'Paid',
@@ -20,6 +23,10 @@ class InvoiceDetailScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final invoice = context.watch<InvoiceProvider>().invoices.firstWhere(
+      (item) => item.invoiceNumber == this.invoice.invoiceNumber,
+      orElse: () => this.invoice,
+    );
     final progress = invoice.totalAmount == 0
         ? 0.0
         : (invoice.paidAmount / invoice.totalAmount).clamp(0.0, 1.0).toDouble();
@@ -68,7 +75,7 @@ class InvoiceDetailScreen extends StatelessWidget {
                             ),
                           ),
                         ),
-                        _invoiceStatus(),
+                        _invoiceStatus(invoice),
                         const SizedBox(width: 8),
                         SizedBox(
                           width: 48,
@@ -146,7 +153,7 @@ class InvoiceDetailScreen extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 8),
-                    _depositCard(),
+                    _depositCard(invoice),
                     const SizedBox(height: 10),
                     _sectionTitle('Payment History'),
                     const SizedBox(height: 8),
@@ -187,9 +194,10 @@ class InvoiceDetailScreen extends StatelessWidget {
                 height: 48,
                 child: FilledButton(
                   onPressed: invoice.balance > 0
-                      ? () => _showMessage(
-                          context,
-                          'Payment recording is not available yet.',
+                      ? () => Navigator.of(context).push(
+                          MaterialPageRoute<void>(
+                            builder: (_) => AddPaymentScreen(invoice: invoice),
+                          ),
                         )
                       : null,
                   style: FilledButton.styleFrom(
@@ -213,7 +221,7 @@ class InvoiceDetailScreen extends StatelessWidget {
     );
   }
 
-  Widget _invoiceStatus() {
+  Widget _invoiceStatus(InvoiceData invoice) {
     return Container(
       constraints: const BoxConstraints(minHeight: 32),
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
@@ -222,13 +230,13 @@ class InvoiceDetailScreen extends StatelessWidget {
         borderRadius: BorderRadius.circular(18),
       ),
       child: Text(
-        _statusLabel,
+        _statusLabel(invoice),
         style: const TextStyle(color: _navy, fontSize: 12),
       ),
     );
   }
 
-  Widget _depositCard() {
+  Widget _depositCard(InvoiceData invoice) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.fromLTRB(14, 10, 14, 10),
