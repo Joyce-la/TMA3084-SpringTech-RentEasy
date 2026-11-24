@@ -17,8 +17,6 @@ class InvoiceData {
     required this.discount,
     required this.paidAmount,
     required this.status,
-    required this.depositStatus,
-    required this.depositDetail,
     required this.payments,
   });
 
@@ -37,8 +35,6 @@ class InvoiceData {
   final double discount;
   final double paidAmount;
   final InvoicePaymentStatus status;
-  final String depositStatus;
-  final String depositDetail;
   final List<InvoicePaymentData> payments;
 
   double get totalAmount =>
@@ -50,7 +46,6 @@ class InvoiceData {
     double? paidAmount,
     InvoicePaymentStatus? status,
     List<InvoicePaymentData>? payments,
-    String? depositStatus,
   }) {
     return InvoiceData(
       invoiceNumber: invoiceNumber,
@@ -68,8 +63,6 @@ class InvoiceData {
       discount: discount,
       paidAmount: paidAmount ?? this.paidAmount,
       status: status ?? this.status,
-      depositStatus: depositStatus ?? this.depositStatus,
-      depositDetail: depositDetail,
       payments: payments ?? this.payments,
     );
   }

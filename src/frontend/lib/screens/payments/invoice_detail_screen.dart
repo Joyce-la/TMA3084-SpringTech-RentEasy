@@ -2,7 +2,9 @@ import 'package:material_ui/material_ui.dart';
 import 'package:provider/provider.dart';
 
 import '../../mock_data/invoices.dart';
+import '../../models/deposit.dart';
 import '../../providers/invoice_provider.dart';
+import '../../providers/deposit_provider.dart';
 import '../../widgets/app_top_bar.dart';
 import 'add_payment_screen.dart';
 import 'invoice_pdf_preview_screen.dart';
@@ -27,6 +29,11 @@ class InvoiceDetailScreen extends StatelessWidget {
       (item) => item.invoiceNumber == this.invoice.invoiceNumber,
       orElse: () => this.invoice,
     );
+    final deposit = context
+        .watch<DepositProvider>()
+        .deposits
+        .where((item) => item.invoiceNumber == invoice.invoiceNumber)
+        .firstOrNull;
     final progress = invoice.totalAmount == 0
         ? 0.0
         : (invoice.paidAmount / invoice.totalAmount).clamp(0.0, 1.0).toDouble();
@@ -153,7 +160,7 @@ class InvoiceDetailScreen extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 8),
-                    _depositCard(invoice),
+                    _depositCard(invoice, deposit),
                     const SizedBox(height: 10),
                     _sectionTitle('Payment History'),
                     const SizedBox(height: 8),
@@ -236,7 +243,7 @@ class InvoiceDetailScreen extends StatelessWidget {
     );
   }
 
-  Widget _depositCard(InvoiceData invoice) {
+  Widget _depositCard(InvoiceData invoice, DepositData? deposit) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.fromLTRB(14, 10, 14, 10),
@@ -262,7 +269,7 @@ class InvoiceDetailScreen extends StatelessWidget {
                   borderRadius: BorderRadius.circular(6),
                 ),
                 child: Text(
-                  invoice.depositStatus,
+                  deposit?.status.label ?? 'NO DEPOSIT RECORD',
                   style: const TextStyle(fontSize: 11),
                 ),
               ),
@@ -270,7 +277,7 @@ class InvoiceDetailScreen extends StatelessWidget {
           ),
           const SizedBox(height: 4),
           Text(
-            invoice.depositDetail,
+            deposit?.statusDetail ?? 'Deposit status unavailable.',
             style: TextStyle(fontSize: 12, color: Colors.grey.shade800),
           ),
         ],

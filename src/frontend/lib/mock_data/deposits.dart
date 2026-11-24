@@ -32,12 +32,24 @@ DepositData _depositFromRecord(Map<String, Object?> deposit) {
     invoiceNumber: _string(invoice, 'invoiceNo', fallback: ''),
     customerName: _string(user, 'name', fallback: 'Unknown customer'),
     plateNumber: _string(vehicle, 'plateNo', fallback: 'Unknown plate'),
+    carType: _carType(vehicle),
     status: _depositStatus(deposit),
     collectedAmount: _collectedAmount(deposit),
     statusDetail: _statusDetail(deposit),
+    returnedDate: rental == null
+        ? null
+        : _string(rental, 'returnDate', fallback: ''),
     refundedAmount: _refundedAmount(deposit),
-    actionLabel: _actionLabel(deposit),
   );
+}
+
+String _carType(Map<String, Object?>? vehicle) {
+  if (vehicle == null) return '';
+  final category = _string(vehicle, 'category', fallback: '');
+  final model = _string(vehicle, 'model', fallback: '');
+  if (category.isEmpty) return model;
+  if (model.isEmpty) return category;
+  return '$category ($model)';
 }
 
 DepositStatus _depositStatus(Map<String, Object?> deposit) {
@@ -92,15 +104,6 @@ String _statusDetail(Map<String, Object?> deposit) {
       'description',
       fallback: 'Deposit status unavailable',
     ),
-  };
-}
-
-String? _actionLabel(Map<String, Object?> deposit) {
-  final rentalId = _integer(deposit, 'rentalId');
-  return switch (rentalId) {
-    303 => 'Record Incident',
-    304 => 'Refund',
-    _ => null,
   };
 }
 

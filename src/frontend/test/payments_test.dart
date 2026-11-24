@@ -9,6 +9,7 @@ import 'package:src/screens/payments/invoice_detail_screen.dart';
 import 'package:src/screens/payments/invoice_pdf_preview_screen.dart';
 import 'package:src/screens/payments/invoice_screen.dart';
 import 'package:src/screens/payments/add_payment_screen.dart';
+import 'package:src/screens/payments/refund_deposit_screen.dart';
 import 'package:src/widgets/app_top_bar.dart';
 import 'package:src/widgets/deposit_card.dart';
 import 'package:src/widgets/invoice_card.dart';
@@ -103,7 +104,6 @@ void main() {
             status: DepositStatus.eligibleToRefund,
             collectedAmount: 100,
             statusDetail: 'Check ended 7 Nov',
-            primaryActionLabel: 'Refund',
             onPrimaryAction: () => actionTapped = true,
           ),
         ),
@@ -270,7 +270,6 @@ void main() {
     );
     expect(updatedInvoice.status, InvoicePaymentStatus.partiallyPaid);
     expect(updatedInvoice.paidAmount, 100);
-    expect(updatedInvoice.depositStatus, 'HOLDING');
     final depositProvider = Provider.of<DepositProvider>(
       tester.element(find.byType(InvoiceDetailScreen)),
       listen: false,
@@ -279,6 +278,70 @@ void main() {
       (deposit) => deposit.invoiceNumber == 'INV-20261110-001',
     );
     expect(updatedDeposit.status, DepositStatus.holding);
+  });
+
+  testWidgets('Refunded deposits have no card action', (tester) async {
+    for (final status in [
+      DepositStatus.partiallyRefunded,
+      DepositStatus.refunded,
+    ]) {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: DepositCard(
+              invoiceNumber: 'INV-TERMINAL',
+              customerName: 'Customer',
+              plateNumber: 'ABC 123',
+              status: status,
+              collectedAmount: 100,
+              statusDetail: 'Refund saved',
+              onPrimaryAction: () {},
+            ),
+          ),
+        ),
+      );
+
+      expect(find.text('Refund'), findsNothing);
+      expect(find.text('Record Incident'), findsNothing);
+    }
+  });
+
+  testWidgets('Invoice detail reads deposit status from DepositProvider', (
+    tester,
+  ) async {
+    final invoiceProvider = InvoiceProvider();
+    final depositProvider = DepositProvider();
+    addTearDown(invoiceProvider.dispose);
+    addTearDown(depositProvider.dispose);
+
+    final invoice = invoiceProvider.invoices.firstWhere(
+      (item) => item.invoiceNumber == 'INV-20261105-001',
+    );
+    final checkingDeposit = depositProvider.deposits.firstWhere(
+      (item) => item.invoiceNumber == invoice.invoiceNumber,
+    );
+
+    await tester.pumpWidget(
+      MultiProvider(
+        providers: [
+          ChangeNotifierProvider.value(value: invoiceProvider),
+          ChangeNotifierProvider.value(value: depositProvider),
+        ],
+        child: MaterialApp(home: InvoiceDetailScreen(invoice: invoice)),
+      ),
+    );
+    expect(find.text('3-days CHECKING'), findsOneWidget);
+
+    depositProvider.updateDeposit(
+      checkingDeposit.copyWith(
+        status: DepositStatus.partiallyRefunded,
+        statusDetail: 'Deducted RM 30.00',
+      ),
+    );
+    await tester.pump();
+
+    expect(find.text('PARTIALLY REFUNDED'), findsOneWidget);
+    expect(find.text('Deducted RM 30.00'), findsOneWidget);
   });
 
   testWidgets('Payment above the balance is rejected and not saved', (
@@ -348,4 +411,103 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.byType(InvoiceScreen), findsOneWidget);
   });
+
+  testWidgets('Eligible deposit opens refund screen and supports full refund', (
+    tester,
+  ) async {
+    await tester.pumpWidget(const RentEasyApp());
+    await tester.tap(find.text('Payment'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Deposits'));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Refund'));
+    await tester.pumpAndSettle();
+    expect(find.byType(RefundDepositScreen), findsOneWidget);
+    expect(find.text('Aisha Rahman'), findsOneWidget);
+    expect(find.text('ELIGIBLE TO REFUND'), findsOneWidget);
+
+    await tester.tap(find.byKey(const Key('refund-partial')));
+    await tester.pumpAndSettle();
+    expect(
+      tester
+          .widget<TextField>(find.byKey(const Key('refund-amount')))
+          .controller!
+          .text,
+      isEmpty,
+    );
+    await tester.tap(find.byKey(const Key('refund-all')));
+    await tester.pumpAndSettle();
+    expect(
+      tester
+          .widget<TextField>(find.byKey(const Key('refund-amount')))
+          .controller!
+          .text,
+      '100.00',
+    );
+
+    await tester.tap(find.byKey(const Key('confirm-refund')));
+    await tester.pumpAndSettle();
+    expect(find.byType(DepositScreen), findsOneWidget);
+
+    final provider = Provider.of<DepositProvider>(
+      tester.element(find.byType(DepositScreen)),
+      listen: false,
+    );
+    final deposit = provider.deposits.firstWhere(
+      (item) => item.invoiceNumber == 'INV-20261101-002',
+    );
+    expect(deposit.status, DepositStatus.refunded);
+  });
+
+  testWidgets(
+    'Checking incident requires partial description and updates status',
+    (tester) async {
+      await tester.pumpWidget(const RentEasyApp());
+      await tester.tap(find.text('Payment'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Deposits'));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Record Incident'));
+      await tester.pumpAndSettle();
+      expect(find.byType(RefundDepositScreen), findsOneWidget);
+      expect(find.text('Refund all'), findsOneWidget);
+      expect(find.text('Partial refund'), findsOneWidget);
+      expect(
+        tester
+            .widget<TextField>(find.byKey(const Key('refund-amount')))
+            .controller!
+            .text,
+        isEmpty,
+      );
+
+      final refundAll = tester.widget<OutlinedButton>(
+        find.ancestor(
+          of: find.text('Refund all'),
+          matching: find.byType(OutlinedButton),
+        ),
+      );
+      expect(refundAll.onPressed, isNull);
+
+      await tester.enterText(find.byKey(const Key('refund-amount')), '70.00');
+      await tester.enterText(
+        find.byKey(const Key('refund-description')),
+        'Vehicle damage: cracked side mirror',
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('confirm-refund')));
+      await tester.pumpAndSettle();
+
+      final provider = Provider.of<DepositProvider>(
+        tester.element(find.byType(DepositScreen)),
+        listen: false,
+      );
+      final deposit = provider.deposits.firstWhere(
+        (item) => item.invoiceNumber == 'INV-20261105-001',
+      );
+      expect(deposit.status, DepositStatus.partiallyRefunded);
+      expect(deposit.refundedAmount, 70);
+    },
+  );
 }

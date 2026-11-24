@@ -14,7 +14,6 @@ class DepositCard extends StatelessWidget {
     required this.collectedAmount,
     required this.statusDetail,
     this.refundedAmount,
-    this.primaryActionLabel,
     this.onPrimaryAction,
   });
 
@@ -27,15 +26,12 @@ class DepositCard extends StatelessWidget {
   final double collectedAmount;
   final String statusDetail;
   final double? refundedAmount;
-  final String? primaryActionLabel;
   final VoidCallback? onPrimaryAction;
 
-  String get statusLabel => switch (status) {
-    DepositStatus.eligibleToRefund => 'ELIGIBLE TO REFUND',
-    DepositStatus.checking => '3-days CHECKING',
-    DepositStatus.pending => 'PENDING',
-    DepositStatus.holding => 'HOLDING',
-    DepositStatus.partiallyRefunded => 'PARTIALLY REFUNDED',
+  String? get primaryActionLabel => switch (status) {
+    DepositStatus.eligibleToRefund => 'Refund',
+    DepositStatus.checking => 'Record Incident',
+    _ => null,
   };
 
   Color get _statusColor => switch (status) {
@@ -44,6 +40,7 @@ class DepositCard extends StatelessWidget {
     DepositStatus.pending => const Color(0xFFC9C9CD),
     DepositStatus.holding => const Color(0xFF98989D),
     DepositStatus.partiallyRefunded => const Color(0xFFC9C9CD),
+    DepositStatus.refunded => const Color(0xFFC9C9CD),
   };
 
   @override
@@ -86,7 +83,7 @@ class DepositCard extends StatelessWidget {
                       borderRadius: BorderRadius.circular(6),
                     ),
                     child: Text(
-                      statusLabel,
+                      status.label,
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
                         fontSize: 10,
@@ -135,7 +132,7 @@ class DepositCard extends StatelessWidget {
                 ),
               ],
             ),
-            if (primaryActionLabel != null) ...[
+            if (primaryActionLabel != null && onPrimaryAction != null) ...[
               const SizedBox(height: 10),
               SizedBox(
                 width: double.infinity,

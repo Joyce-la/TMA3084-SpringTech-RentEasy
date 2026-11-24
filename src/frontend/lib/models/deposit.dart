@@ -4,6 +4,18 @@ enum DepositStatus {
   pending,
   holding,
   partiallyRefunded,
+  refunded,
+}
+
+extension DepositStatusLabel on DepositStatus {
+  String get label => switch (this) {
+    DepositStatus.eligibleToRefund => 'ELIGIBLE TO REFUND',
+    DepositStatus.checking => '3-days CHECKING',
+    DepositStatus.pending => 'PENDING',
+    DepositStatus.holding => 'HOLDING',
+    DepositStatus.partiallyRefunded => 'PARTIALLY REFUNDED',
+    DepositStatus.refunded => 'REFUNDED',
+  };
 }
 
 class DepositData {
@@ -14,8 +26,9 @@ class DepositData {
     required this.status,
     required this.collectedAmount,
     required this.statusDetail,
+    this.carType = '',
+    this.returnedDate,
     this.refundedAmount,
-    this.actionLabel,
   });
 
   final String invoiceNumber;
@@ -24,13 +37,17 @@ class DepositData {
   final DepositStatus status;
   final double collectedAmount;
   final String statusDetail;
+  final String carType;
+  final String? returnedDate;
   final double? refundedAmount;
-  final String? actionLabel;
 
   DepositData copyWith({
     DepositStatus? status,
     double? collectedAmount,
     String? statusDetail,
+    String? carType,
+    String? returnedDate,
+    double? refundedAmount,
   }) {
     return DepositData(
       invoiceNumber: invoiceNumber,
@@ -39,8 +56,9 @@ class DepositData {
       status: status ?? this.status,
       collectedAmount: collectedAmount ?? this.collectedAmount,
       statusDetail: statusDetail ?? this.statusDetail,
-      refundedAmount: refundedAmount,
-      actionLabel: actionLabel,
+      carType: carType ?? this.carType,
+      returnedDate: returnedDate ?? this.returnedDate,
+      refundedAmount: refundedAmount ?? this.refundedAmount,
     );
   }
 }
