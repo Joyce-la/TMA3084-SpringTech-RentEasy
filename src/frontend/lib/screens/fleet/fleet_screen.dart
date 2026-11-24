@@ -6,6 +6,7 @@ import 'package:src/widgets/vehicle_card.dart';
 
 import '../../mock_data/vehicles.dart';
 import 'add_vehicle_screen.dart';
+import 'vehicle_details_screen.dart';
 
 class FleetScreen extends StatefulWidget {
   const FleetScreen({super.key});
@@ -81,15 +82,13 @@ class _FleetScreenState extends State<FleetScreen> {
                             services: v.services,
                             statusLabel: _statusLabel(v.status),
                             taxExpiryDays: v.taxExpiryDays,
-                            onTap: () {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text(
-                                    '${v.plateNumber} details will be developed next.',
-                                  ),
-                                ),
-                              );
-                            },
+                            onTap: () => Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) =>
+                                    VehicleDetailsScreen(vehicle: v),
+                              ),
+                            ),
                           );
                         },
                       ),

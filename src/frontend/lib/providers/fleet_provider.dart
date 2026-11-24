@@ -48,6 +48,7 @@ class FleetProvider extends ChangeNotifier {
   }
 
   void addVehicle(VehicleData vehicle) {
+    if (hasPlate(vehicle.plateNumber)) return;
     _vehicles.add(vehicle);
     notifyListeners();
   }
@@ -70,4 +71,16 @@ class FleetProvider extends ChangeNotifier {
     _vehicles.removeWhere((vehicle) => vehicle.plateNumber == plateNumber);
     notifyListeners();
   }
+
+  bool hasPlate(String plateNumber, {String? except}) {
+    final plate = _normalize(plateNumber);
+    return _vehicles.any(
+      (v) =>
+          _normalize(v.plateNumber) == plate &&
+          _normalize(v.plateNumber) != _normalize(except ?? ''),
+    );
+  }
+
+  static String _normalize(String plate) =>
+      plate.replaceAll(' ', '').toUpperCase();
 }

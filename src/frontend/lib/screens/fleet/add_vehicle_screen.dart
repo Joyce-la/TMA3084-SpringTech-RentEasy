@@ -1,4 +1,6 @@
 import 'package:material_ui/material_ui.dart';
+import 'package:provider/provider.dart';
+import 'package:src/providers/fleet_provider.dart';
 
 import '../../mock_data/vehicles.dart';
 
@@ -112,7 +114,14 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
               controller: plateController,
               textCapitalization: TextCapitalization.characters,
               decoration: fieldDecoration('QAA 1234 X'),
-              validator: requiredValidator,
+              validator: (value) {
+                final required = requiredValidator(value);
+                if (required != null) return required;
+                if (context.read<FleetProvider>().hasPlate(value!)) {
+                  return 'Plate already exists';
+                }
+                return null;
+              },
             ),
           ),
           buildLabeled(
