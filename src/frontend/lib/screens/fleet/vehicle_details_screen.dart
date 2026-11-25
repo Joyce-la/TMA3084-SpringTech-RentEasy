@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:src/providers/fleet_provider.dart';
 import 'package:src/widgets/app_top_bar.dart';
 
+import '../ai_assistant/ai_assistant_screen.dart';
 import 'edit_vehicle_screen.dart';
 
 import '../../mock_data/vehicles.dart';
@@ -38,7 +39,12 @@ class VehicleDetailsScreen extends StatelessWidget {
                     icon: const Icon(Icons.chevron_left, size: 28),
                     onPressed: () => Navigator.pop(context),
                   ),
-                  Expanded(child: AppTopBar(title: current.plateNumber)),
+                  Expanded(
+                    child: AppTopBar(
+                      title: current.plateNumber,
+                      onAssistantTap: () => AiAssistantScreen.open(context),
+                    ),
+                  ),
                 ],
               ),
             ),
