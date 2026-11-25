@@ -728,16 +728,11 @@ class _AddPaymentScreenState extends State<AddPaymentScreen> {
         : paidAmount > 0
         ? InvoicePaymentStatus.partiallyPaid
         : InvoicePaymentStatus.unpaid;
-    final depositFullyPaid = _paidDeposit + deposit >= current.deposit;
-    final newDepositStatus = depositFullyPaid
-        ? 'HOLDING'
-        : current.depositStatus;
     provider.updateInvoice(
       current.copyWith(
         paidAmount: paidAmount,
         status: status,
         payments: <InvoicePaymentData>[...current.payments, ...payments],
-        depositStatus: newDepositStatus,
       ),
     );
     if (context.mounted) {

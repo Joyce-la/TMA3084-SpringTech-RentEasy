@@ -66,4 +66,37 @@ class DepositProvider extends ChangeNotifier {
     _deposits.removeWhere((deposit) => deposit.invoiceNumber == invoiceNumber);
     notifyListeners();
   }
+
+  void recordRefund({
+    required String invoiceNumber,
+    required double refundAmount,
+    required String description,
+  }) {
+    final index = _deposits.indexWhere(
+      (item) => item.invoiceNumber == invoiceNumber,
+    );
+    if (index == -1) return;
+
+    final deposit = _deposits[index];
+    final deduction = (deposit.collectedAmount - refundAmount)
+        .clamp(0.0, deposit.collectedAmount)
+        .toDouble();
+    final status = deposit.status == DepositStatus.checking
+        ? DepositStatus.partiallyRefunded
+        : (deduction == 0
+              ? DepositStatus.refunded
+              : DepositStatus.partiallyRefunded);
+    final detail = deduction > 0
+        ? 'Deducted RM ${deduction.toStringAsFixed(2)}'
+        : 'Refund completed';
+
+    _deposits[index] = deposit.copyWith(
+      status: status,
+      statusDetail: description.trim().isEmpty
+          ? detail
+          : '$detail · ${description.trim()}',
+      refundedAmount: refundAmount,
+    );
+    notifyListeners();
+  }
 }

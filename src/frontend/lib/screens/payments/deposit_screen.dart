@@ -6,6 +6,7 @@ import '../../widgets/deposit_card.dart';
 import '../../providers/deposit_provider.dart';
 import 'invoice_screen.dart';
 import 'payments_screen_components.dart';
+import 'refund_deposit_screen.dart';
 
 class DepositScreen extends StatefulWidget {
   const DepositScreen({super.key, this.onInvoiceSelected});
@@ -79,10 +80,16 @@ class _DepositScreenState extends State<DepositScreen> {
                     collectedAmount: deposit.collectedAmount,
                     statusDetail: deposit.statusDetail,
                     refundedAmount: deposit.refundedAmount,
-                    primaryActionLabel: deposit.actionLabel,
-                    onPrimaryAction: deposit.actionLabel == null
-                        ? null
-                        : () => _showMessage(deposit.actionLabel!),
+                    onPrimaryAction:
+                        deposit.status == DepositStatus.eligibleToRefund ||
+                            deposit.status == DepositStatus.checking
+                        ? () => Navigator.of(context).push(
+                            MaterialPageRoute<void>(
+                              builder: (_) =>
+                                  RefundDepositScreen(deposit: deposit),
+                            ),
+                          )
+                        : null,
                   );
                 },
               ),

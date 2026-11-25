@@ -11,9 +11,6 @@ InvoiceData _invoiceFromRecord(Map<String, Object?> invoice) {
   final rental = _recordById('Rental', 'rentalId', invoice['rentalId']);
   final vehicle = _recordById('Vehicle', 'vehicleId', rental['vehicleId']);
   final user = _recordById('User', 'userId', rental['userId']);
-  final deposit = mockDatabase['Deposit']!.firstWhere(
-    (record) => record['rentalId'] == rental['rentalId'],
-  );
   final charges = mockDatabase['RentalCharge']!
       .where((record) => record['rentalId'] == rental['rentalId'])
       .toList();
@@ -52,8 +49,6 @@ InvoiceData _invoiceFromRecord(Map<String, Object?> invoice) {
         'Unknown invoice payment status: $status',
       ),
     },
-    depositStatus: _string(deposit, 'depositStatus').toUpperCase(),
-    depositDetail: _string(deposit, 'description'),
     payments: List.unmodifiable(payments),
   );
 }

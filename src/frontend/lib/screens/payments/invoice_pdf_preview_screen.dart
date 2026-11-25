@@ -1,6 +1,9 @@
 import 'package:material_ui/material_ui.dart';
+import 'package:provider/provider.dart';
 
 import '../../mock_data/invoices.dart';
+import '../../models/deposit.dart';
+import '../../providers/deposit_provider.dart';
 
 class InvoicePdfPreviewScreen extends StatelessWidget {
   const InvoicePdfPreviewScreen({super.key, required this.invoice});
@@ -11,6 +14,11 @@ class InvoicePdfPreviewScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final deposit = context
+        .watch<DepositProvider>()
+        .deposits
+        .where((item) => item.invoiceNumber == invoice.invoiceNumber)
+        .firstOrNull;
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
@@ -86,7 +94,12 @@ class InvoicePdfPreviewScreen extends StatelessWidget {
                   child: Center(
                     child: ConstrainedBox(
                       constraints: const BoxConstraints(maxWidth: 480),
-                      child: _InvoiceDocument(invoice: invoice),
+                      child: _InvoiceDocument(
+                        invoice: invoice,
+                        depositSummary: deposit == null
+                            ? 'Deposit status unavailable.'
+                            : '${deposit.status.label} · ${deposit.statusDetail}',
+                      ),
                     ),
                   ),
                 ),
@@ -166,9 +179,10 @@ class InvoicePdfPreviewScreen extends StatelessWidget {
 }
 
 class _InvoiceDocument extends StatelessWidget {
-  const _InvoiceDocument({required this.invoice});
+  const _InvoiceDocument({required this.invoice, required this.depositSummary});
 
   final InvoiceData invoice;
+  final String depositSummary;
 
   @override
   Widget build(BuildContext context) {
@@ -300,7 +314,7 @@ class _InvoiceDocument extends StatelessWidget {
             child: Divider(height: 1),
           ),
           Text(
-            invoice.depositDetail,
+            depositSummary,
             style: const TextStyle(color: Colors.grey, fontSize: 10),
           ),
         ],
