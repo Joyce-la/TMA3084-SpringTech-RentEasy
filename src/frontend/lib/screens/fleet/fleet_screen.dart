@@ -5,6 +5,7 @@ import 'package:src/widgets/app_top_bar.dart';
 import 'package:src/widgets/vehicle_card.dart';
 
 import '../../mock_data/vehicles.dart';
+import '../ai_assistant/ai_assistant_screen.dart';
 import 'add_vehicle_screen.dart';
 import 'vehicle_details_screen.dart';
 
@@ -49,7 +50,10 @@ class _FleetScreenState extends State<FleetScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const AppTopBar(title: 'Fleet'),
+              AppTopBar(
+                title: 'Fleet',
+                onAssistantTap: () => AiAssistantScreen.open(context),
+              ),
 
               const SizedBox(height: 12),
 
