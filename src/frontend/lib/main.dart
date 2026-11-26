@@ -8,6 +8,8 @@ import 'package:src/providers/assistant_provider.dart';
 import 'package:src/providers/fleet_provider.dart';
 import 'package:src/providers/deposit_provider.dart';
 import 'package:src/providers/invoice_provider.dart';
+import 'package:src/providers/maintenance_provider.dart';
+import 'package:src/screens/reports/reports_screen.dart';
 
 void main() {
   runApp(const RentEasyApp());
@@ -24,6 +26,7 @@ class RentEasyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => FleetProvider()),
         ChangeNotifierProvider(create: (_) => InvoiceProvider()),
         ChangeNotifierProvider(create: (_) => DepositProvider()),
+        ChangeNotifierProvider(create: (_) => MaintenanceProvider()),
       ],
       child: MaterialApp(
         title: 'RentEasy',
@@ -108,11 +111,9 @@ class _BottomNavState extends State<BottomNav> {
       );
     }
 
-    final message = switch (_selectedIndex) {
-      2 => 'The Rentals screen is coming soon.',
-      4 => 'The Reports screen is coming soon.',
-      _ => 'This screen is coming soon.',
-    };
+    if (_selectedIndex == 4) return const ReportsScreen();
+
+    const message = 'The Rentals screen is coming soon.';
     return Center(child: Text(message, textAlign: TextAlign.center));
   }
 }

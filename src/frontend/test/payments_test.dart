@@ -374,19 +374,12 @@ void main() {
     expect(find.byType(FleetScreen), findsOneWidget);
   });
 
-  testWidgets('Unimplemented navigation destinations show coming soon text', (
-    tester,
-  ) async {
+  testWidgets('Rentals destination shows coming soon text', (tester) async {
     await tester.pumpWidget(const RentEasyApp());
 
-    for (final destination in {
-      'Rentals': 'The Rentals screen is coming soon.',
-      'Reports': 'The Reports screen is coming soon.',
-    }.entries) {
-      await tester.tap(find.text(destination.key));
-      await tester.pumpAndSettle();
-      expect(find.text(destination.value), findsOneWidget);
-    }
+    await tester.tap(find.text('Rentals'));
+    await tester.pumpAndSettle();
+    expect(find.text('The Rentals screen is coming soon.'), findsOneWidget);
   });
 
   testWidgets('Deposit screen switches tabs and filters deposits', (

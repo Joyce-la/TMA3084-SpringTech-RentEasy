@@ -1,14 +1,14 @@
 import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:material_ui/material_ui.dart';
 
-class ReportsScreen extends StatefulWidget {
-  const ReportsScreen({super.key});
+class ReportScreen extends StatefulWidget {
+  const ReportScreen({super.key});
 
   @override
-  State<ReportsScreen> createState() => _ReportsScreenState();
+  State<ReportScreen> createState() => _ReportScreenState();
 }
 
-class _ReportsScreenState extends State<ReportsScreen> {
+class _ReportScreenState extends State<ReportScreen> {
   // Selected reporting period
   String selectedMonth = 'November';
   int selectedYear = 2026;
@@ -16,7 +16,6 @@ class _ReportsScreenState extends State<ReportsScreen> {
   // Theme colours
   static const Color navyBlue = Color(0xFF071957);
   static const Color cardGrey = Color(0xFFB7B7BB);
-  static const Color lightGrey = Color(0xFFE0E0E0);
 
   // Available months
   final List<String> months = [
@@ -85,152 +84,30 @@ class _ReportsScreenState extends State<ReportsScreen> {
   }
 
   @override
-  Widget build(BuildContext context) {
-    final report = currentReport;
+  Widget build(BuildContext context) => _buildReportView(currentReport);
 
-    return Scaffold(
-      backgroundColor: Colors.white,
-
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(16),
-
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // 1. Page header
-              buildHeader(),
-
-              const SizedBox(height: 20),
-
-              // 2. Report and Maintenance tabs
-              buildTabs(),
-
-              const SizedBox(height: 16),
-
-              // 3. Reporting period selector
-              buildPeriodSelector(),
-
-              const SizedBox(height: 12),
-
-              // 4. Summary cards
-              buildSummaryCards(report),
-
-              const SizedBox(height: 24),
-
-              // 5. Revenue chart title
-              const Text(
-                'Monthly Revenue',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-              ),
-
-              const SizedBox(height: 12),
-
-              // 6. Revenue chart
-              buildRevenueChart(report),
-
-              const SizedBox(height: 20),
-
-              // 7. Export report button
-              buildExportButton(),
-
-              const SizedBox(height: 16),
-            ],
-          ),
-        ),
-      ),
-
-      // Bottom navigation
-      bottomNavigationBar: buildBottomNavigation(),
-    );
-  }
-
-  // --------------------------------------------------
-  // 1. PAGE HEADER
-  // --------------------------------------------------
-
-  Widget buildHeader() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+  Widget _buildReportView(MonthlyReportData report) => SingleChildScrollView(
+    padding: const EdgeInsets.fromLTRB(24, 16, 24, 16),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Flexible(
-          child: Text(
-            'Reports & Maintenance',
-            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-          ),
+        buildPeriodSelector(),
+        const SizedBox(height: 12),
+        buildSummaryCards(report),
+        const SizedBox(height: 24),
+        const Text(
+          'Monthly Revenue',
+          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
         ),
-
-        Row(
-          children: [
-            buildHeaderIcon(Icons.smart_toy_outlined),
-            const SizedBox(width: 8),
-            buildHeaderIcon(Icons.person),
-          ],
-        ),
+        const SizedBox(height: 12),
+        buildRevenueChart(report),
+        const SizedBox(height: 20),
+        buildExportButton(),
+        const SizedBox(height: 16),
       ],
-    );
-  }
+    ),
+  );
 
-  Widget buildHeaderIcon(IconData icon) {
-    return CircleAvatar(
-      radius: 17,
-      backgroundColor: Colors.grey.shade300,
-      child: Icon(icon, size: 19, color: Colors.black),
-    );
-  }
-
-  // --------------------------------------------------
-  // 2. REPORT AND MAINTENANCE TABS
-  // --------------------------------------------------
-
-  Widget buildTabs() {
-    return Row(
-      children: [
-        Expanded(
-          child: Container(
-            height: 42,
-            decoration: BoxDecoration(
-              color: navyBlue,
-              borderRadius: BorderRadius.circular(5),
-            ),
-            child: const Center(
-              child: Text(
-                'Report',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-          ),
-        ),
-
-        const SizedBox(width: 4),
-
-        Expanded(
-          child: GestureDetector(
-            onTap: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Maintenance screen will be developed next.'),
-                ),
-              );
-            },
-            child: Container(
-              height: 42,
-              decoration: BoxDecoration(
-                color: lightGrey,
-                borderRadius: BorderRadius.circular(5),
-              ),
-              child: const Center(child: Text('Maintenance')),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  // --------------------------------------------------
   // 3. REPORTING PERIOD SELECTOR
   // --------------------------------------------------
 
@@ -863,51 +740,6 @@ class _ReportsScreenState extends State<ReportsScreen> {
             ),
           ],
         );
-      },
-    );
-  }
-
-  // --------------------------------------------------
-  // 7. BOTTOM NAVIGATION
-  // --------------------------------------------------
-
-  Widget buildBottomNavigation() {
-    return BottomNavigationBar(
-      type: BottomNavigationBarType.fixed,
-      currentIndex: 4,
-      selectedItemColor: navyBlue,
-      unselectedItemColor: Colors.black,
-      backgroundColor: Colors.grey.shade200,
-      selectedFontSize: 10,
-      unselectedFontSize: 10,
-
-      items: const [
-        BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-
-        BottomNavigationBarItem(
-          icon: Icon(Icons.directions_car),
-          label: 'Fleet',
-        ),
-
-        BottomNavigationBarItem(icon: Icon(Icons.car_rental), label: 'Rentals'),
-
-        BottomNavigationBarItem(icon: Icon(Icons.payment), label: 'Payment'),
-
-        BottomNavigationBarItem(icon: Icon(Icons.assessment), label: 'Reports'),
-      ],
-
-      onTap: (index) {
-        if (index != 4) {
-          final moduleNames = ['Home', 'Fleet', 'Rentals', 'Payment'];
-
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                '${moduleNames[index]} module is not implemented yet.',
-              ),
-            ),
-          );
-        }
       },
     );
   }
