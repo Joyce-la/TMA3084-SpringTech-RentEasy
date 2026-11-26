@@ -25,11 +25,7 @@ class MaintenanceStatusBadge extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(
-            _icon,
-            size: 14,
-            color: color,
-          ),
+          Icon(_icon, size: 14, color: color),
           const SizedBox(width: 4),
           Text(
             status,

@@ -11,9 +11,11 @@ import 'package:src/widgets/maintenance_card.dart';
 
 DateTime _date(int daysFromToday) {
   final now = DateTime.now();
-  return DateTime(now.year, now.month, now.day).add(
-    Duration(days: daysFromToday),
-  );
+  return DateTime(
+    now.year,
+    now.month,
+    now.day,
+  ).add(Duration(days: daysFromToday));
 }
 
 MaintenanceRecord _record({
@@ -30,9 +32,7 @@ MaintenanceRecord _record({
   serviceType: service,
   startDate: _date(startDays),
   endDate: _date(endDays),
-  completedDate: status == MaintenanceRecordStatus.completed
-      ? _date(0)
-      : null,
+  completedDate: status == MaintenanceRecordStatus.completed ? _date(0) : null,
   cost: 300,
   description: 'Maintenance test record',
   workshop: 'Central Auto',
@@ -83,16 +83,20 @@ Future<void> _chooseDate(
   // Move the calendar header month-by-month until the requested month appears.
   final monthLabel = find.text(_monthYear(date));
   var displayedMonth = DateTime.now();
-  for (var attempt = 0;
-      monthLabel.evaluate().isEmpty && attempt < 24;
-      attempt++) {
+  for (
+    var attempt = 0;
+    monthLabel.evaluate().isEmpty && attempt < 24;
+    attempt++
+  ) {
     final targetMonth = DateTime(date.year, date.month);
     await tester.tap(
-      find.byIcon(
-        targetMonth.isBefore(displayedMonth)
-            ? Icons.chevron_left
-            : Icons.chevron_right,
-      ).first,
+      find
+          .byIcon(
+            targetMonth.isBefore(displayedMonth)
+                ? Icons.chevron_left
+                : Icons.chevron_right,
+          )
+          .first,
     );
     await tester.pumpAndSettle();
     displayedMonth = DateTime(
@@ -139,12 +143,7 @@ void main() {
             startDays: -5,
             endDays: -1,
           ),
-          _record(
-            id: 2,
-            service: 'Active item',
-            startDays: -1,
-            endDays: 2,
-          ),
+          _record(id: 2, service: 'Active item', startDays: -1, endDays: 2),
           _record(
             id: 3,
             service: 'Future item',
@@ -340,7 +339,8 @@ void main() {
       expect(find.text('Enter a valid cost'), findsOneWidget);
       expect(find.text('Required'), findsOneWidget);
       expect(
-        tester.widget<FilledButton>(find.byKey(const Key('save-maintenance')))
+        tester
+            .widget<FilledButton>(find.byKey(const Key('save-maintenance')))
             .onPressed,
         isNull,
       );
@@ -360,17 +360,14 @@ void main() {
       expect(find.text('Enter a valid cost'), findsOneWidget);
 
       final yesterday = _date(-1);
-      await _chooseDate(
-        tester,
-        'maintenance-end-date-picker',
-        yesterday,
-      );
+      await _chooseDate(tester, 'maintenance-end-date-picker', yesterday);
       expect(
         find.text('Expected finish date must be on or after the start date.'),
         findsOneWidget,
       );
       expect(
-        tester.widget<FilledButton>(find.byKey(const Key('save-maintenance')))
+        tester
+            .widget<FilledButton>(find.byKey(const Key('save-maintenance')))
             .onPressed,
         isNull,
       );
@@ -417,11 +414,7 @@ void main() {
       await tester.ensureVisible(completedSwitch);
       await tester.tap(completedSwitch);
       await tester.pumpAndSettle();
-      await _chooseDate(
-        tester,
-        'maintenance-completion-date-picker',
-        _date(0),
-      );
+      await _chooseDate(tester, 'maintenance-completion-date-picker', _date(0));
       await tester.ensureVisible(find.byKey(const Key('save-maintenance')));
       await tester.tap(find.byKey(const Key('save-maintenance')));
       await tester.pumpAndSettle();
