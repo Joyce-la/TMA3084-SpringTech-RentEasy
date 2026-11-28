@@ -218,6 +218,38 @@ void main() {
     await tester.tap(find.text('Add payment'));
     await tester.pumpAndSettle();
     expect(find.byType(AddPaymentScreen), findsOneWidget);
+    expect(find.text('Record Payment'), findsOneWidget);
+    expect(find.text('Payment Received'), findsOneWidget);
+    expect(find.text('Allocate Payment'), findsOneWidget);
+    expect(find.byTooltip('AI assistant'), findsNothing);
+    expect(find.byTooltip('Profile'), findsNothing);
+
+    final invoiceNumber = tester.widget<Text>(
+      find.text('INV-20261109-003').first,
+    );
+    expect(invoiceNumber.style?.color, Colors.blue);
+    expect(invoiceNumber.style?.fontWeight, FontWeight.w700);
+
+    final rentalField = tester.widget<TextField>(
+      find.byKey(const Key('payment-rental')),
+    );
+    expect(rentalField.controller!.text, isEmpty);
+    expect(rentalField.decoration!.hintText, '0.00');
+    expect(rentalField.decoration!.fillColor, Colors.white);
+
+    final paymentDateField = tester.widget<TextField>(
+      find.byKey(const Key('payment-date')),
+    );
+    expect(paymentDateField.readOnly, isTrue);
+    expect(paymentDateField.decoration!.fillColor, Colors.white);
+
+    final bankTransferButton = tester.widget<FilledButton>(
+      find.byKey(const Key('payment-method-bank-transfer')),
+    );
+    expect(
+      bankTransferButton.style!.side!.resolve({})?.color,
+      const Color(0xFFB8B8BD),
+    );
 
     await tester.enterText(find.byKey(const Key('payment-total')), '100.00');
     await tester.pumpAndSettle();
@@ -264,6 +296,9 @@ void main() {
       find.byKey(const Key('payment-deposit')),
     );
     expect(depositField.readOnly, isTrue);
+    expect(depositField.controller!.text, isEmpty);
+    expect(depositField.decoration!.hintText, '0.00');
+    expect(depositField.decoration!.fillColor, const Color(0xFFF1F1F5));
   });
 
   testWidgets('Saving deposit updates invoice and deposit statuses', (
@@ -276,6 +311,14 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.text('Add payment'));
     await tester.pumpAndSettle();
+
+    final depositField = tester.widget<TextField>(
+      find.byKey(const Key('payment-deposit')),
+    );
+    expect(depositField.readOnly, isFalse);
+    expect(depositField.controller!.text, isEmpty);
+    expect(depositField.decoration!.hintText, '0.00');
+    expect(depositField.decoration!.fillColor, Colors.white);
 
     await tester.enterText(find.byKey(const Key('payment-total')), '100.00');
     await tester.pumpAndSettle();
@@ -383,7 +426,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Amount exceeds the balance'), findsOneWidget);
-    final saveButton = tester.widget<FilledButton>(
+    final saveButton = tester.widget<ElevatedButton>(
       find.byKey(const Key('save-payment')),
     );
     expect(saveButton.onPressed, isNull);
