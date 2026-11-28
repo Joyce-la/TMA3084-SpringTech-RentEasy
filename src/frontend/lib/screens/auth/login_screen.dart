@@ -33,11 +33,7 @@ class _LoginScreenState extends State<LoginScreen> {
       return;
     }
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Login authentication is not connected yet.'),
-      ),
-    );
+    Navigator.pushReplacementNamed(context, '/dashboard');
   }
 
   void _forgotPassword() {

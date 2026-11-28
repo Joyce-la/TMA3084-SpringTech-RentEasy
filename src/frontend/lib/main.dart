@@ -1,21 +1,25 @@
 import 'package:material_ui/material_ui.dart';
+import 'package:provider/provider.dart';
+
 import 'package:src/screens/home_screen.dart';
 import 'package:src/screens/fleet/fleet_screen.dart';
 import 'package:src/screens/payments/deposit_screen.dart';
 import 'package:src/screens/payments/invoice_screen.dart';
 import 'package:src/screens/auth/login_screen.dart';
-import 'package:provider/provider.dart';
+
 import 'package:src/providers/assistant_provider.dart';
 import 'package:src/providers/fleet_provider.dart';
 import 'package:src/providers/deposit_provider.dart';
 import 'package:src/providers/invoice_provider.dart';
 
 void main() {
-  runApp(const RentEasyApp());
+  runApp(const RentEasyApp(requireLogin: true));
 }
 
 class RentEasyApp extends StatelessWidget {
-  const RentEasyApp({super.key});
+  final bool requireLogin;
+
+  const RentEasyApp({super.key, this.requireLogin = false});
 
   @override
   Widget build(BuildContext context) {
@@ -33,7 +37,8 @@ class RentEasyApp extends StatelessWidget {
           colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF071957)),
           useMaterial3: true,
         ),
-        home: const LoginScreen(),
+        routes: {'/dashboard': (_) => const BottomNav()},
+        home: requireLogin ? const LoginScreen() : const BottomNav(),
       ),
     );
   }
@@ -53,6 +58,7 @@ class _BottomNavState extends State<BottomNav> {
   void _selectDestination(int index) {
     setState(() {
       _selectedIndex = index;
+
       if (index != 3) {
         _showDeposits = false;
       }
@@ -101,12 +107,16 @@ class _BottomNavState extends State<BottomNav> {
     if (_selectedIndex == 3) {
       if (_showDeposits) {
         return DepositScreen(
-          onInvoiceSelected: () => setState(() => _showDeposits = false),
+          onInvoiceSelected: () {
+            setState(() => _showDeposits = false);
+          },
         );
       }
 
       return InvoiceScreen(
-        onDepositsSelected: () => setState(() => _showDeposits = true),
+        onDepositsSelected: () {
+          setState(() => _showDeposits = true);
+        },
       );
     }
 
