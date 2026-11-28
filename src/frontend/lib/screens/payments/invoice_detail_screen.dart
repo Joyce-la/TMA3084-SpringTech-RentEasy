@@ -65,132 +65,140 @@ class InvoiceDetailScreen extends StatelessWidget {
               ),
             ),
             Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.fromLTRB(28, 8, 28, 20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            invoice.invoiceNumber,
-                            style: const TextStyle(
-                              color: Colors.blue,
-                              fontSize: 16,
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
-                        ),
-                        _invoiceStatus(invoice),
-                        const SizedBox(width: 8),
-                        SizedBox(
-                          width: 48,
-                          height: 48,
-                          child: IconButton.filledTonal(
-                            tooltip: 'Preview invoice PDF',
-                            onPressed: () => Navigator.of(context).push(
-                              MaterialPageRoute<void>(
-                                builder: (_) =>
-                                    InvoicePdfPreviewScreen(invoice: invoice),
+              child: ScrollConfiguration(
+                behavior: const MaterialScrollBehavior().copyWith(
+                  overscroll: false,
+                ),
+                child: SingleChildScrollView(
+                  physics: const ClampingScrollPhysics(),
+                  padding: const EdgeInsets.fromLTRB(28, 8, 28, 20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              invoice.invoiceNumber,
+                              style: const TextStyle(
+                                color: Colors.blue,
+                                fontSize: 16,
+                                fontWeight: FontWeight.w700,
                               ),
                             ),
-                            icon: const Icon(
-                              Icons.download_for_offline_outlined,
-                            ),
                           ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 12),
-                    _sectionTitle('Customer & Vehicle'),
-                    const SizedBox(height: 8),
-                    _panelCard(
-                      child: Column(
-                        children: [
-                          _labelValue('Full name', invoice.customerName),
-                          _labelValue('Car type', invoice.carType),
-                          _labelValue('Plate no.', invoice.plateNumber),
-                          _labelValue(
-                            'Pickup → Return',
-                            '${invoice.pickupDate} → ${invoice.returnDate}',
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    _sectionTitle('Invoice Summary'),
-                    const SizedBox(height: 8),
-                    _panelCard(
-                      child: Column(
-                        children: [
-                          _summaryRow('Rental', invoice.rental),
-                          _summaryRow('Delivery', invoice.delivery),
-                          _summaryRow('Outstation', invoice.outstation),
-                          _summaryRow('Deposit', invoice.deposit),
-                          _summaryRow('Add-ons', invoice.addOns),
-                          _summaryRow(
-                            'Discount',
-                            invoice.discount,
-                            negative: true,
-                          ),
-                          const Divider(height: 18),
-                          _summaryRow(
-                            'Total',
-                            invoice.totalAmount,
-                            prominent: true,
-                          ),
-                          _summaryRow('Paid', invoice.paidAmount),
-                          _summaryRow(
-                            'Balance',
-                            invoice.balance,
-                            prominent: true,
-                          ),
-                          const SizedBox(height: 8),
-                          ClipRRect(
-                            borderRadius: BorderRadius.circular(8),
-                            child: LinearProgressIndicator(
-                              value: progress,
-                              minHeight: 10,
-                              color: _navy,
-                              backgroundColor: Colors.white,
+                          _invoiceStatus(invoice),
+                          const SizedBox(width: 8),
+                          SizedBox(
+                            width: 48,
+                            height: 48,
+                            child: IconButton.filledTonal(
+                              tooltip: 'Preview invoice PDF',
+                              onPressed: () => Navigator.of(context).push(
+                                MaterialPageRoute<void>(
+                                  builder: (_) =>
+                                      InvoicePdfPreviewScreen(invoice: invoice),
+                                ),
+                              ),
+                              icon: const Icon(
+                                Icons.download_for_offline_outlined,
+                              ),
                             ),
                           ),
                         ],
                       ),
-                    ),
-                    const SizedBox(height: 8),
-                    _depositCard(invoice, deposit),
-                    const SizedBox(height: 10),
-                    _sectionTitle('Payment History'),
-                    const SizedBox(height: 8),
-                    _panelCard(
-                      child: invoice.payments.isEmpty
-                          ? Center(
-                              child: Padding(
-                                padding: const EdgeInsets.symmetric(
-                                  vertical: 12,
-                                ),
-                                child: Text(
-                                  'No payments yet',
-                                  style: TextStyle(color: Colors.grey.shade700),
-                                ),
+                      const SizedBox(height: 12),
+                      _sectionTitle('Customer & Vehicle'),
+                      const SizedBox(height: 8),
+                      _panelCard(
+                        child: Column(
+                          children: [
+                            _labelValue('Full name', invoice.customerName),
+                            _labelValue('Car type', invoice.carType),
+                            _labelValue('Plate no.', invoice.plateNumber),
+                            _labelValue(
+                              'Pickup → Return',
+                              '${invoice.pickupDate} → ${invoice.returnDate}',
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      _sectionTitle('Invoice Summary'),
+                      const SizedBox(height: 8),
+                      _panelCard(
+                        child: Column(
+                          children: [
+                            _summaryRow('Rental', invoice.rental),
+                            _summaryRow('Delivery', invoice.delivery),
+                            _summaryRow('Outstation', invoice.outstation),
+                            _summaryRow('Deposit', invoice.deposit),
+                            _summaryRow('Add-ons', invoice.addOns),
+                            _summaryRow(
+                              'Discount',
+                              invoice.discount,
+                              negative: true,
+                            ),
+                            const Divider(height: 18),
+                            _summaryRow(
+                              'Total',
+                              invoice.totalAmount,
+                              prominent: true,
+                            ),
+                            _summaryRow('Paid', invoice.paidAmount),
+                            _summaryRow(
+                              'Balance',
+                              invoice.balance,
+                              prominent: true,
+                            ),
+                            const SizedBox(height: 8),
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(8),
+                              child: LinearProgressIndicator(
+                                value: progress,
+                                minHeight: 10,
+                                color: _navy,
+                                backgroundColor: Colors.white,
                               ),
-                            )
-                          : Column(
-                              children: [
-                                for (
-                                  var index = 0;
-                                  index < invoice.payments.length;
-                                  index++
-                                ) ...[
-                                  if (index > 0) const Divider(height: 16),
-                                  _paymentRow(invoice.payments[index]),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      _depositCard(invoice, deposit),
+                      const SizedBox(height: 10),
+                      _sectionTitle('Payment History'),
+                      const SizedBox(height: 8),
+                      _panelCard(
+                        child: invoice.payments.isEmpty
+                            ? Center(
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 12,
+                                  ),
+                                  child: Text(
+                                    'No payments yet',
+                                    style: TextStyle(
+                                      color: Colors.grey.shade700,
+                                    ),
+                                  ),
+                                ),
+                              )
+                            : Column(
+                                children: [
+                                  for (
+                                    var index = 0;
+                                    index < invoice.payments.length;
+                                    index++
+                                  ) ...[
+                                    if (index > 0) const Divider(height: 16),
+                                    _paymentRow(invoice.payments[index]),
+                                  ],
                                 ],
-                              ],
-                            ),
-                    ),
-                  ],
+                              ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),

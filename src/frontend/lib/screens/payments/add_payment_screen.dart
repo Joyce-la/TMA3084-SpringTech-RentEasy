@@ -134,6 +134,23 @@ class _AddPaymentScreenState extends State<AddPaymentScreen> {
                 _parse(_rentalController) -
                 _parse(_depositController))
             .toDouble();
+    final paymentDateField = _labeledField(
+      'Payment date *',
+      _textField(
+        key: const Key('payment-date'),
+        controller: _dateController,
+        readOnly: true,
+        onTap: _pickDate,
+      ),
+    );
+    final referenceField = _labeledField(
+      'Reference (optional)',
+      _textField(
+        key: const Key('payment-reference'),
+        controller: _referenceController,
+        hint: 'e.g. transfer ref.',
+      ),
+    );
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -142,212 +159,205 @@ class _AddPaymentScreenState extends State<AddPaymentScreen> {
           children: [
             _buildHeader(),
             Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _sectionCard(
-                      'Invoice',
-                      Column(
-                        children: [
-                          _labelValue(
-                            'Invoice no.',
-                            invoice.invoiceNumber,
-                            valueColor: Colors.blue,
-                          ),
-                          _labelValue('Customer', invoice.customerName),
-                          _labelValue('Car Type', invoice.carType),
-                        ],
+              child: ScrollConfiguration(
+                behavior: const MaterialScrollBehavior().copyWith(
+                  overscroll: false,
+                ),
+                child: SingleChildScrollView(
+                  physics: const ClampingScrollPhysics(),
+                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _sectionCard(
+                        'Invoice',
+                        Column(
+                          children: [
+                            _labelValue(
+                              'Invoice no.',
+                              invoice.invoiceNumber,
+                              valueColor: Colors.blue,
+                            ),
+                            _labelValue('Customer', invoice.customerName),
+                            _labelValue('Car Type', invoice.carType),
+                          ],
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 12),
-                    _sectionCard('Amount to Collect', _amountTable(invoice)),
-                    const SizedBox(height: 12),
-                    _sectionCard(
-                      'Payment Received',
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          _labeledField(
-                            'Total received (RM) *',
-                            _textField(
-                              key: const Key('payment-total'),
-                              controller: _totalController,
-                              keyboardType:
-                                  const TextInputType.numberWithOptions(
-                                    decimal: true,
+                      const SizedBox(height: 12),
+                      _sectionCard('Amount to Collect', _amountTable(invoice)),
+                      const SizedBox(height: 12),
+                      _sectionCard(
+                        'Payment Received',
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            _labeledField(
+                              'Total received (RM) *',
+                              _textField(
+                                key: const Key('payment-total'),
+                                controller: _totalController,
+                                keyboardType:
+                                    const TextInputType.numberWithOptions(
+                                      decimal: true,
+                                    ),
+                                inputFormatters: [
+                                  FilteringTextInputFormatter.allow(
+                                    RegExp(r'[0-9.]'),
                                   ),
-                              inputFormatters: [
-                                FilteringTextInputFormatter.allow(
-                                  RegExp(r'[0-9.]'),
-                                ),
-                              ],
-                              error: _totalExceedsBalance
-                                  ? 'Amount exceeds the balance'
-                                  : (_touched && _parse(_totalController) <= 0
-                                        ? 'Required'
-                                        : null),
+                                ],
+                                error: _totalExceedsBalance
+                                    ? 'Amount exceeds the balance'
+                                    : (_touched && _parse(_totalController) <= 0
+                                          ? 'Required'
+                                          : null),
+                              ),
                             ),
-                          ),
-                          const SizedBox(height: 12),
-                          Row(
-                            children: [
-                              Expanded(child: _methodButton('Cash')),
-                              const SizedBox(width: 8),
-                              Expanded(child: _methodButton('Bank transfer')),
-                            ],
-                          ),
-                          const SizedBox(height: 12),
-                          Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Expanded(
-                                child: _labeledField(
-                                  'Payment date *',
-                                  _textField(
-                                    key: const Key('payment-date'),
-                                    controller: _dateController,
-                                    readOnly: true,
-                                    onTap: _pickDate,
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(width: 10),
-                              Expanded(
-                                child: _labeledField(
-                                  'Reference (optional)',
-                                  _textField(
-                                    key: const Key('payment-reference'),
-                                    controller: _referenceController,
-                                    hint: 'e.g. transfer ref.',
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    _sectionCard(
-                      'Allocate Payment',
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Expanded(
-                                child: _labeledField(
-                                  'Rental charges *',
-                                  _textField(
-                                    key: const Key('payment-rental'),
-                                    controller: _rentalController,
-                                    hint: '0.00',
-                                    keyboardType:
-                                        const TextInputType.numberWithOptions(
-                                          decimal: true,
-                                        ),
-                                    inputFormatters: [
-                                      FilteringTextInputFormatter.allow(
-                                        RegExp(r'[0-9.]'),
-                                      ),
-                                    ],
-                                    error:
-                                        _rentalController.text
-                                                .trim()
-                                                .isNotEmpty &&
-                                            _parse(_rentalController) >
-                                                _rentalBalance
-                                        ? 'Exceeds rental balance'
-                                        : null,
-                                  ),
-                                  helperText:
-                                      'Maximum ${_money(_rentalBalance)}',
-                                ),
-                              ),
-                              const SizedBox(width: 10),
-                              Expanded(
-                                child: _labeledField(
-                                  'Deposit',
-                                  _textField(
-                                    key: const Key('payment-deposit'),
-                                    controller: _depositController,
-                                    readOnly: _depositBalance == 0,
-                                    fillColor: _depositBalance == 0
-                                        ? panel
-                                        : Colors.white,
-                                    hint: '0.00',
-                                    keyboardType:
-                                        const TextInputType.numberWithOptions(
-                                          decimal: true,
-                                        ),
-                                    inputFormatters: [
-                                      FilteringTextInputFormatter.allow(
-                                        RegExp(r'[0-9.]'),
-                                      ),
-                                    ],
-                                    error:
-                                        _depositController.text
-                                                .trim()
-                                                .isNotEmpty &&
-                                            _parse(_depositController) >
-                                                _depositBalance
-                                        ? 'Exceeds deposit balance'
-                                        : null,
-                                  ),
-                                  helperText: _depositBalance == 0
-                                      ? 'Fully collected'
-                                      : 'Maximum ${_money(_depositBalance)}',
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 12),
-                          Container(
-                            width: double.infinity,
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 14,
-                              vertical: 12,
-                            ),
-                            decoration: BoxDecoration(
-                              color: unallocated.abs() <= 0.005
-                                  ? const Color(0xFF4CAF50)
-                                  : const Color(0xFFFFD6D6),
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            const SizedBox(height: 12),
+                            Row(
                               children: [
-                                const Text(
-                                  'Unallocated (auto)',
-                                  style: TextStyle(fontWeight: FontWeight.w700),
+                                Expanded(child: _methodButton('Cash')),
+                                const SizedBox(width: 8),
+                                Expanded(child: _methodButton('Bank transfer')),
+                              ],
+                            ),
+                            const SizedBox(height: 12),
+                            if (_method == 'Bank transfer')
+                              Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Expanded(child: paymentDateField),
+                                  const SizedBox(width: 10),
+                                  Expanded(child: referenceField),
+                                ],
+                              )
+                            else
+                              paymentDateField,
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      _sectionCard(
+                        'Allocate Payment',
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Expanded(
+                                  child: _labeledField(
+                                    'Rental charges *',
+                                    _textField(
+                                      key: const Key('payment-rental'),
+                                      controller: _rentalController,
+                                      hint: '0.00',
+                                      keyboardType:
+                                          const TextInputType.numberWithOptions(
+                                            decimal: true,
+                                          ),
+                                      inputFormatters: [
+                                        FilteringTextInputFormatter.allow(
+                                          RegExp(r'[0-9.]'),
+                                        ),
+                                      ],
+                                      error:
+                                          _rentalController.text
+                                                  .trim()
+                                                  .isNotEmpty &&
+                                              _parse(_rentalController) >
+                                                  _rentalBalance
+                                          ? 'Exceeds rental balance'
+                                          : null,
+                                    ),
+                                    helperText:
+                                        'Maximum ${_money(_rentalBalance)}',
+                                  ),
                                 ),
-                                Text(
-                                  _money(unallocated.abs()),
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.w800,
-                                    fontSize: 16,
+                                const SizedBox(width: 10),
+                                Expanded(
+                                  child: _labeledField(
+                                    'Deposit',
+                                    _textField(
+                                      key: const Key('payment-deposit'),
+                                      controller: _depositController,
+                                      readOnly: _depositBalance == 0,
+                                      fillColor: _depositBalance == 0
+                                          ? panel
+                                          : Colors.white,
+                                      hint: '0.00',
+                                      keyboardType:
+                                          const TextInputType.numberWithOptions(
+                                            decimal: true,
+                                          ),
+                                      inputFormatters: [
+                                        FilteringTextInputFormatter.allow(
+                                          RegExp(r'[0-9.]'),
+                                        ),
+                                      ],
+                                      error:
+                                          _depositController.text
+                                                  .trim()
+                                                  .isNotEmpty &&
+                                              _parse(_depositController) >
+                                                  _depositBalance
+                                          ? 'Exceeds deposit balance'
+                                          : null,
+                                    ),
+                                    helperText: _depositBalance == 0
+                                        ? 'Fully collected'
+                                        : 'Maximum ${_money(_depositBalance)}',
                                   ),
                                 ),
                               ],
                             ),
-                          ),
-                          const SizedBox(height: 5),
-                          Text(
-                            unallocated.abs() <= 0.005
-                                ? 'Payment allocations are complete.'
-                                : 'Save is enabled only when Unallocated is RM 0.00.',
-                            style: TextStyle(
-                              fontSize: 11,
-                              color: Colors.grey.shade700,
+                            const SizedBox(height: 12),
+                            Container(
+                              width: double.infinity,
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 14,
+                                vertical: 12,
+                              ),
+                              decoration: BoxDecoration(
+                                color: unallocated.abs() <= 0.005
+                                    ? const Color(0xFF4CAF50)
+                                    : const Color(0xFFFFD6D6),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  const Text(
+                                    'Unallocated (auto)',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                  ),
+                                  Text(
+                                    _money(unallocated.abs()),
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.w800,
+                                      fontSize: 16,
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
-                          ),
-                        ],
+                            const SizedBox(height: 5),
+                            Text(
+                              unallocated.abs() <= 0.005
+                                  ? 'Payment allocations are complete.'
+                                  : 'Save is enabled only when Unallocated is RM 0.00.',
+                              style: TextStyle(
+                                fontSize: 11,
+                                color: Colors.grey.shade700,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -577,18 +587,21 @@ class _AddPaymentScreenState extends State<AddPaymentScreen> {
     final selected = _method == method;
     return SizedBox(
       height: 52,
-      child: FilledButton(
+      child: OutlinedButton(
         key: Key('payment-method-${method.toLowerCase().replaceAll(' ', '-')}'),
         onPressed: () => setState(() => _method = method),
-        style: FilledButton.styleFrom(
-          backgroundColor: selected ? navy : panel,
-          foregroundColor: selected ? Colors.white : Colors.black87,
-          side: BorderSide(color: selected ? navy : borderGrey),
+        style: OutlinedButton.styleFrom(
+          backgroundColor: selected ? navy : Colors.white,
+          foregroundColor: selected ? Colors.white : navy,
+          side: BorderSide(color: selected ? navy : Colors.grey.shade300),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
           ),
         ),
-        child: Text(method),
+        child: Text(
+          method,
+          style: const TextStyle(fontWeight: FontWeight.w700),
+        ),
       ),
     );
   }

@@ -176,6 +176,7 @@ void main() {
     await tester.tap(find.text('INV-20261110-001'));
     await tester.pumpAndSettle();
     expect(find.byType(InvoiceDetailScreen), findsOneWidget);
+    expectClampedScrollWithoutOverscroll(tester);
     expect(find.text('Grace Ling'), findsOneWidget);
     expect(find.text('Sedan (Toyota Vios)'), findsOneWidget);
     expect(find.text('RM 890.00'), findsNWidgets(2));
@@ -218,6 +219,7 @@ void main() {
     await tester.tap(find.text('Add payment'));
     await tester.pumpAndSettle();
     expect(find.byType(AddPaymentScreen), findsOneWidget);
+    expectClampedScrollWithoutOverscroll(tester);
     expect(find.text('Record Payment'), findsOneWidget);
     expect(find.text('Payment Received'), findsOneWidget);
     expect(find.text('Allocate Payment'), findsOneWidget);
@@ -242,14 +244,25 @@ void main() {
     );
     expect(paymentDateField.readOnly, isTrue);
     expect(paymentDateField.decoration!.fillColor, Colors.white);
+    expect(find.byKey(const Key('payment-reference')), findsNothing);
 
-    final bankTransferButton = tester.widget<FilledButton>(
+    final bankTransferButton = tester.widget<OutlinedButton>(
       find.byKey(const Key('payment-method-bank-transfer')),
     );
     expect(
       bankTransferButton.style!.side!.resolve({})?.color,
-      const Color(0xFFB8B8BD),
+      Colors.grey.shade300,
     );
+    final paymentBankTransfer = find.byKey(
+      const Key('payment-method-bank-transfer'),
+    );
+    await tester.ensureVisible(paymentBankTransfer);
+    await tester.tap(paymentBankTransfer);
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('payment-reference')), findsOneWidget);
+    await tester.tap(find.byKey(const Key('payment-method-cash')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('payment-reference')), findsNothing);
 
     await tester.enterText(find.byKey(const Key('payment-total')), '100.00');
     await tester.pumpAndSettle();
@@ -493,9 +506,23 @@ void main() {
     expect(find.byType(RefundDepositScreen), findsOneWidget);
     expect(find.text('Aisha Rahman'), findsOneWidget);
     expect(find.text('ELIGIBLE TO REFUND'), findsOneWidget);
+    expectClampedScrollWithoutOverscroll(tester);
+    expect(find.byTooltip('AI assistant'), findsNothing);
+    expect(find.byTooltip('Profile'), findsNothing);
+    expect(
+      tester.getTopLeft(find.text('Deposit collected')).dx,
+      tester.getTopLeft(find.text('Status')).dx,
+    );
 
     await tester.tap(find.byKey(const Key('refund-partial')));
     await tester.pumpAndSettle();
+    expect(
+      tester
+          .widget<TextField>(find.byKey(const Key('refund-amount')))
+          .decoration!
+          .fillColor,
+      Colors.white,
+    );
     expect(
       tester
           .widget<TextField>(find.byKey(const Key('refund-amount')))
@@ -503,6 +530,23 @@ void main() {
           .text,
       isEmpty,
     );
+    expect(find.byKey(const Key('refund-reference')), findsNothing);
+    final refundBankTransfer = find.text('Bank transfer').last;
+    await tester.ensureVisible(refundBankTransfer);
+    await tester.tap(refundBankTransfer);
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('refund-reference')), findsOneWidget);
+    expect(
+      tester
+          .widget<TextField>(find.byKey(const Key('refund-reference')))
+          .decoration!
+          .fillColor,
+      Colors.white,
+    );
+    await tester.tap(find.text('Cash').last);
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('refund-reference')), findsNothing);
+
     await tester.tap(find.byKey(const Key('refund-all')));
     await tester.pumpAndSettle();
     expect(
@@ -556,6 +600,14 @@ void main() {
         ),
       );
       expect(refundAll.onPressed, isNull);
+      expect(
+        refundAll.style!.backgroundColor!.resolve({WidgetState.disabled}),
+        Colors.grey.shade300,
+      );
+      expect(
+        refundAll.style!.foregroundColor!.resolve({WidgetState.disabled}),
+        Colors.grey.shade700,
+      );
 
       await tester.enterText(find.byKey(const Key('refund-amount')), '70.00');
       await tester.enterText(
@@ -576,5 +628,21 @@ void main() {
       expect(deposit.status, DepositStatus.partiallyRefunded);
       expect(deposit.refundedAmount, 70);
     },
+  );
+}
+
+void expectClampedScrollWithoutOverscroll(WidgetTester tester) {
+  final scrollViewFinder = find.byType(SingleChildScrollView).last;
+  final scrollView = tester.widget<SingleChildScrollView>(scrollViewFinder);
+  expect(scrollView.physics, isA<ClampingScrollPhysics>());
+
+  final context = tester.element(scrollViewFinder);
+  expect(
+    ScrollConfiguration.of(context).buildOverscrollIndicator(
+      context,
+      const SizedBox(),
+      ScrollableDetails(direction: AxisDirection.down),
+    ),
+    isA<SizedBox>(),
   );
 }
