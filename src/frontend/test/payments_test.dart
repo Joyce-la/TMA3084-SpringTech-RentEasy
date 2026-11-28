@@ -35,6 +35,30 @@ void main() {
       expect(deposit.invoiceNumber, isNotEmpty);
       expect(deposit.collectedAmount >= 0, isTrue);
     }
+
+    expect(mockDeposits.map((deposit) => deposit.invoiceNumber), [
+      'INV-20261101-002',
+      'INV-20261105-001',
+      'INV-20261110-001',
+      'INV-20261109-003',
+      'INV-20261028-001',
+    ]);
+    expect(mockDeposits.map((deposit) => deposit.status), [
+      DepositStatus.eligibleToRefund,
+      DepositStatus.checking,
+      DepositStatus.pending,
+      DepositStatus.holding,
+      DepositStatus.partiallyRefunded,
+    ]);
+    expect(mockDeposits.last.collectedAmount, 100);
+    expect(mockDeposits.last.refundedAmount, 60);
+    expect(mockDeposits.map((deposit) => deposit.statusDetail), [
+      'Check ended 7 Nov',
+      'Day 1 of 3 · opens 10 Nov',
+      'Awaiting payment',
+      'Car not returned · due 18 Nov',
+      'Deducted RM 40.00 · damage',
+    ]);
   });
 
   testWidgets('AppTopBar displays its title and calls header actions', (

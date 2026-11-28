@@ -2,44 +2,33 @@ import '../models/deposit.dart';
 import 'database_records.dart';
 
 final mockDeposits = List<DepositData>.unmodifiable(
-  <int>[304, 303, 301, 302, 305].map((rentalId) {
-    final deposit = _findRecord('Deposit', 'rentalId', rentalId);
-    return deposit == null
-        ? DepositData(
-            invoiceNumber: '',
-            customerName: '',
-            plateNumber: '',
-            status: DepositStatus.pending,
-            collectedAmount: 0,
-            statusDetail: 'No deposit record',
-          )
-        : _depositFromRecord(deposit);
-  }),
+  mockDatabase['Deposit']!.map(_depositFromRecord).toList()
+    ..sort((a, b) => a.status.index.compareTo(b.status.index)),
 );
 
 DepositData _depositFromRecord(Map<String, Object?> deposit) {
-  final rentalId = _integer(deposit, 'rentalId');
-  final rental = _findRecord('Rental', 'rentalId', rentalId);
+  final rental = _findRecord('Rental', 'rentalId', deposit['rentalId']);
   final vehicle = rental == null
       ? null
       : _findRecord('Vehicle', 'vehicleId', rental['vehicleId']);
   final user = rental == null
       ? null
       : _findRecord('User', 'userId', rental['userId']);
-  final invoice = _findRecord('Invoice', 'rentalId', rentalId);
+  final invoice = _findRecord('Invoice', 'rentalId', deposit['rentalId']);
+  final status = _depositStatus(deposit);
 
   return DepositData(
     invoiceNumber: _string(invoice, 'invoiceNo', fallback: ''),
     customerName: _string(user, 'name', fallback: 'Unknown customer'),
     plateNumber: _string(vehicle, 'plateNo', fallback: 'Unknown plate'),
     carType: _carType(vehicle),
-    status: _depositStatus(deposit),
-    collectedAmount: _collectedAmount(deposit),
+    status: status,
+    collectedAmount: _number(deposit, 'returnTotal', fallback: 0.0),
     statusDetail: _statusDetail(deposit),
     returnedDate: rental == null
         ? null
         : _string(rental, 'returnDate', fallback: ''),
-    refundedAmount: _refundedAmount(deposit),
+    refundedAmount: _refundedAmount(deposit, status),
   );
 }
 
@@ -52,59 +41,34 @@ String _carType(Map<String, Object?>? vehicle) {
   return '$category ($model)';
 }
 
-DepositStatus _depositStatus(Map<String, Object?> deposit) {
-  final rentalId = _integer(deposit, 'rentalId');
-  final rawStatus = _string(deposit, 'depositStatus', fallback: '');
-
-  if (rawStatus == 'pending') return DepositStatus.pending;
-  if (rawStatus == 'holding') return DepositStatus.holding;
-  if (rawStatus == 'refunded') {
-    return switch (rentalId) {
-      303 => DepositStatus.checking,
-      304 => DepositStatus.eligibleToRefund,
-      305 => DepositStatus.partiallyRefunded,
-      _ => DepositStatus.pending,
+DepositStatus _depositStatus(Map<String, Object?> deposit) =>
+    switch (_string(deposit, 'depositStatus', fallback: '')) {
+      'eligibleToRefund' => DepositStatus.eligibleToRefund,
+      'checking' => DepositStatus.checking,
+      'pending' => DepositStatus.pending,
+      'holding' => DepositStatus.holding,
+      'partiallyRefunded' => DepositStatus.partiallyRefunded,
+      'refunded' => DepositStatus.refunded,
+      final status => throw StateError('Unknown deposit status: $status'),
     };
-  }
-
-  return switch (rentalId) {
-    303 => DepositStatus.checking,
-    304 => DepositStatus.eligibleToRefund,
-    305 => DepositStatus.partiallyRefunded,
-    _ => DepositStatus.pending,
-  };
-}
-
-double _collectedAmount(Map<String, Object?> deposit) {
-  final rentalId = _integer(deposit, 'rentalId');
-  if (rentalId == 301) return 0.0;
-  return _number(deposit, 'returnTotal', fallback: 0.0);
-}
-
-double? _refundedAmount(Map<String, Object?> deposit) {
-  final rentalId = _integer(deposit, 'rentalId');
-  if (rentalId != 305) return null;
-  final refunded = rentalId == 305
-      ? 60.0
-      : _number(deposit, 'returnTotal', fallback: 100.0);
-  final deducted = _number(deposit, 'deductedAmount', fallback: 0.0);
-  return deducted > 0 ? refunded - deducted : null;
-}
 
 String _statusDetail(Map<String, Object?> deposit) {
-  final rentalId = _integer(deposit, 'rentalId');
-  return switch (rentalId) {
-    301 => 'Awaiting payment',
-    302 => 'Car not returned · due 18 Nov',
-    303 => 'Day 1 of 3 · opens 10 Nov',
-    304 => 'Check ended 7 Nov',
-    305 => 'Deducted RM 40.00 · damage',
-    _ => _string(
-      deposit,
-      'description',
-      fallback: 'Deposit status unavailable',
-    ),
-  };
+  final description = _string(
+    deposit,
+    'description',
+    fallback: 'Deposit status unavailable',
+  );
+  final deducted = _number(deposit, 'deductedAmount', fallback: 0.0);
+  if (deducted <= 0) return description;
+  return 'Deducted RM ${deducted.toStringAsFixed(2)} · $description';
+}
+
+double? _refundedAmount(Map<String, Object?> deposit, DepositStatus status) {
+  if (status != DepositStatus.partiallyRefunded) return null;
+
+  final collected = _number(deposit, 'returnTotal', fallback: 0.0);
+  final deducted = _number(deposit, 'deductedAmount', fallback: 0.0);
+  return (collected - deducted).clamp(0.0, collected).toDouble();
 }
 
 Map<String, Object?>? _findRecord(String table, String field, Object? value) {
@@ -122,11 +86,6 @@ String _string(
 }) {
   final value = record?[field];
   return value is String && value.isNotEmpty ? value : fallback;
-}
-
-int _integer(Map<String, Object?> record, String field) {
-  final value = record[field];
-  return value is num ? value.toInt() : 0;
 }
 
 double _number(
