@@ -3,6 +3,7 @@ import 'package:src/screens/home_screen.dart';
 import 'package:src/screens/fleet/fleet_screen.dart';
 import 'package:src/screens/payments/deposit_screen.dart';
 import 'package:src/screens/payments/invoice_screen.dart';
+import 'package:src/screens/auth/login_screen.dart';
 import 'package:provider/provider.dart';
 import 'package:src/providers/assistant_provider.dart';
 import 'package:src/providers/fleet_provider.dart';
@@ -32,7 +33,7 @@ class RentEasyApp extends StatelessWidget {
           colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF071957)),
           useMaterial3: true,
         ),
-        home: const BottomNav(),
+        home: const LoginScreen(),
       ),
     );
   }
@@ -103,6 +104,7 @@ class _BottomNavState extends State<BottomNav> {
           onInvoiceSelected: () => setState(() => _showDeposits = false),
         );
       }
+
       return InvoiceScreen(
         onDepositsSelected: () => setState(() => _showDeposits = true),
       );
@@ -113,6 +115,7 @@ class _BottomNavState extends State<BottomNav> {
       4 => 'The Reports screen is coming soon.',
       _ => 'This screen is coming soon.',
     };
+
     return Center(child: Text(message, textAlign: TextAlign.center));
   }
 }
